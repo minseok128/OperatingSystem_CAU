@@ -68,8 +68,7 @@ static struct semaphore *KPRINT;
 // Define the semaphore for moving cars.
 static struct semaphore *POINT;
 // Define the global variable for counting the number fo cars above the intersection. (ex. 0: 1 car above the intersection)
-//int num_cars_intersection = -1;
-//int return_controller = 32;
+
 /* Threads */
 typedef struct thread Thread;
 
@@ -124,59 +123,57 @@ pCardinalPoint(int cardinal_point)
 void
 vCardinalPoint(int cardinal_point)
 {
-        switch(cardinal_point) {
-                case 4:
-                        V(semNW);
-                        break;
-                case 5:
-                        V(semNE);
-                        break;
-                case 6:
-                        V(semSE);
-                        break;
-                case 7:
-                        V(semSW);
-                        break;
-
-        }
+	switch(cardinal_point) {
+		case 4:
+				V(semNW);
+				break;
+		case 5:
+				V(semNE);
+				break;
+		case 6:
+				V(semSE);
+				break;
+		case 7:
+				V(semSW);
+				break;
+	}
 }
 void
 pWaitPoint(int point)
 {
 	switch(point) {
-                case 4:
-                        P(waitNW);
-                        break;
-                case 5:
-                        P(waitNE);
-                        break;
-                case 6:
-                        P(waitSE);
-                        break;
-                case 7:
-                        P(waitSW);
-                        break;
+		case 4:
+				P(waitNW);
+				break;
+		case 5:
+				P(waitNE);
+				break;
+		case 6:
+				P(waitSE);
+				break;
+		case 7:
+				P(waitSW);
+				break;
 
-        }
+	}
 }
 void
 vWaitPoint(int point)
 {
-        switch(point) {
-                case 4:
-                        V(waitNW);
-                        break;
-                case 5:
-                        V(waitNE);
-                        break;
-                case 6:
-                        V(waitSE);
-                        break;
-                case 7:
-                        V(waitSW);
-                        break;
-
-        }
+	switch(point) {
+		case 4:
+				V(waitNW);
+				break;
+		case 5:
+				V(waitNE);
+				break;
+		case 6:
+				V(waitSE);
+				break;
+		case 7:
+				V(waitSW);
+				break;
+	}
 }
 
 // Go Straight.
@@ -185,181 +182,102 @@ goStraight(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_p
 {
 	int route;
 	pCardinalPoint(start_point+4);
-//	P(KPRINT);
-//	kprintf("// %lu gets %s\n",car_num, getCardinalPoint(start_point+4));
-//	V(KPRINT);
 	P(POINT);
-//	P(KPRINT);
-//	kprintf("// %lu gets point/ resources remain: %d\n", car_num, POINT->sem_count);
-//	V(KPRINT);
 
 	// Print the current point.
 	P(KPRINT);
 	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (GO STRAIGHT)\n", getCardinalPoint(start_point+4), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-//	num_cars_intersection++;
-//	kprintf("// %d cars above the intesection.\n", num_cars_intersection+1);
 	route = start_point+3;
-        if(route<4)
-                route = 7;
+	if(route<4)
+		route = 7;
 	V(KPRINT);
-	
-	for (int i=0; i<100; i++);
 
 	pCardinalPoint(route);
-//	P(KPRINT);
-//        kprintf("// %lu gets %s\n",car_num, getCardinalPoint(route));
-//        V(KPRINT);
 	vCardinalPoint(start_point+4);
-//	P(KPRINT);
-//        kprintf("// %lu returns %s\n",car_num, getCardinalPoint(start_point+4));
-//       V(KPRINT);
+
 	// Print the current point	
 	P(KPRINT);
-        kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (GO STRAIGHT)\n", getCardinalPoint(route), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-//	kprintf("// %d cars above the intersection.\n", num_cars_intersection+1);
+	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (GO STRAIGHT)\n", getCardinalPoint(route), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
 	V(KPRINT);
-//	for (i=0; i<100; i++);
-        // Print the exiting point of cars.
-        P(KPRINT);
-        kprintf("-----------------------------------------------------------------------------------------\n");
-        kprintf("[LEAVING]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-//	num_cars_intersection--;
-//	V(POINT);
-//        vCardinalPoint(route);
-//	kprintf("// %d cars above the intersection.\n", num_cars_intersection+1);
-        kprintf("-----------------------------------------------------------------------------------------\n");
-        V(KPRINT);
-	
+
+	// Print the exiting point of cars.
+	P(KPRINT);
+	kprintf("-----------------------------------------------------------------------------------------\n");
+	kprintf("[LEAVING]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
+
+	kprintf("-----------------------------------------------------------------------------------------\n");
+	V(KPRINT);
 	V(POINT);
-//	P(KPRINT);
-//        kprintf("// %lu returns point/ resources remain: %d\n", car_num, POINT->sem_count);
-//        V(KPRINT);
 	vCardinalPoint(route);
-//	P(KPRINT);
-//        kprintf("// %lu returns %s\n",car_num, getCardinalPoint(route));
-//        V(KPRINT);
-//	V(POINT);
 }
 // Turn Right.
 void
 turnRight(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_point)
 {
-//	int i;
-        pCardinalPoint(start_point+4);
-//	P(KPRINT);
-//        kprintf("// %lu gets %s\n",car_num, getCardinalPoint(start_point+4));
-//	kprintf("// %lu gets point/ resources remain: %d\n", car_num, POINT->sem_count);
-//        V(KPRINT);
-//	P(POINT);
+	pCardinalPoint(start_point+4);
 
-        // Print the current point.
-        P(KPRINT);
-        kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN RIGHT)\n", getCardinalPoint(start_point+4), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-//	num_cars_intersection++;
-//	kprintf("// %d cars above the instersection.\n", num_cars_intersection+1);
-        V(KPRINT);
-//	for (i=0; i<100; i++);
-	// Print the exiting point of cars.
-        P(KPRINT);
-        kprintf("-----------------------------------------------------------------------------------------\n");
-        kprintf("[LEAVING]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-//	num_cars_intersection--;
-//	vCardinalPoint(start_point+4);
-//	kprintf("// %d cars above the intersection.\n", num_cars_intersection+1);
-        kprintf("-----------------------------------------------------------------------------------------\n");
+	// Print the current point.
+	P(KPRINT);
+	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN RIGHT)\n", getCardinalPoint(start_point+4), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
+
 	V(KPRINT);
-	
-//	V(POINT);
+
+// Print the exiting point of cars.
+	P(KPRINT);
+	kprintf("-----------------------------------------------------------------------------------------\n");
+	kprintf("[LEAVING]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
+
+	kprintf("-----------------------------------------------------------------------------------------\n");
+	V(KPRINT);
+
 	vCardinalPoint(start_point+4);
-//	P(KPRINT);
-//	kprintf("// %lu returns point/ resources remain: %d\n", car_num, POINT->sem_count);
-//        kprintf("// %lu returns %s\n",car_num, getCardinalPoint(start_point+4));
-//        V(KPRINT);
 }
 // Turn Left.
 void
 turnLeft(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_point)
 {
-        int route1;
+	int route1;
 	int route2;
 
-//	P(POINT);
-        pCardinalPoint(start_point+4);
-//	P(KPRINT);
-//        kprintf("// %lu gets %s\n",car_num, getCardinalPoint(start_point+4));
-//        V(KPRINT);
-        P(POINT);
-//        P(KPRINT);
-//        kprintf("// %lu gets point/ resources remain: %d\n", car_num, POINT->sem_count);
-//        V(KPRINT);
+	pCardinalPoint(start_point+4);
+	P(POINT);
 
-        // Print the current point.
-        P(KPRINT);
-        kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN LEFT)\n", getCardinalPoint(start_point+4), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-//	num_cars_intersection++;
-//	kprintf("// %d cars above the intersection.\n", num_cars_intersection+1);
+	// Print the current point.
+	P(KPRINT);
+	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN LEFT)\n", getCardinalPoint(start_point+4), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
 	route1 = start_point+3;
-        if(route1<4)
-                route1 = 7;
-        V(KPRINT);
+	if(route1<4)
+		route1 = 7;
+	V(KPRINT);
 	
 	for (int i=0; i<100; i++);
-
-        pCardinalPoint(route1);
-//	P(KPRINT);
-//        kprintf("// %lu gets %s\n",car_num, getCardinalPoint(route1));
-//        V(KPRINT);
+		pCardinalPoint(route1);
 	vCardinalPoint(start_point+4);
-//	P(KPRINT);
-//        kprintf("// %lu returns %s\n",car_num, getCardinalPoint(start_point+4));
-//        V(KPRINT);
-        // Print the current point      
-        P(KPRINT);
-//        vCardinalPoint(start_point+4);
+
+	// Print the current point
+	P(KPRINT);
 	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN LEFT)\n", getCardinalPoint(route1), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));	
-//	kprintf("// %d cars above the intersection.\n", num_cars_intersection+1);
 	route2 = route1-1;
-        if(route2<4)
-                route2 = 7;
-        V(KPRINT);
-
-//	for (i=0; i<100; i++);
-
-        pCardinalPoint(route2);
-//	P(KPRINT);
-//        kprintf("// %lu gets %s\n",car_num, getCardinalPoint(route2));
-//        V(KPRINT);
+	if(route2<4)
+		route2 = 7;
+	V(KPRINT);
+	pCardinalPoint(route2);
 	vCardinalPoint(route1);
-//	P(KPRINT);
-//        kprintf("// %lu returns %s\n",car_num, getCardinalPoint(route1));
-//        V(KPRINT);
 	// Print the current point      
-        P(KPRINT);
-        kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN LEFT)\n", getCardinalPoint(route2), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-//	kprintf("// %d cars above the intersection.\n", num_cars_intersection+1);
-        V(KPRINT);
-//	for (i=0; i<100; i++);
-        // Print the exiting point of cars.
-        P(KPRINT);
-        kprintf("-----------------------------------------------------------------------------------------\n");
-        kprintf("[LEAVING]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-//	num_cars_intersection--;
-//	V(POINT);
-//        vCardinalPoint(route2);
-//	kprintf("// %d cars above the intersection.\n", num_cars_intersection+1);
-        kprintf("-----------------------------------------------------------------------------------------\n");
-        V(KPRINT);
+	P(KPRINT);
+	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN LEFT)\n", getCardinalPoint(route2), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
+	V(KPRINT);
+
+	// Print the exiting point of cars.
+	P(KPRINT);
+	kprintf("-----------------------------------------------------------------------------------------\n");
+	kprintf("[LEAVING]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
+
+	kprintf("-----------------------------------------------------------------------------------------\n");
+	V(KPRINT);
 
 	V(POINT);
-//        P(KPRINT);
-//        kprintf("// %lu returns point/ resources remain: %d\n", car_num, POINT->sem_count);
-//        V(KPRINT);
-        vCardinalPoint(route2);
-//        P(KPRINT);
-//        kprintf("// %lu returns %s\n",car_num, getCardinalPoint(route2));
-//        V(KPRINT);
-//	V(POINT);
-}
+	vCardinalPoint(route2);
 // Moving System
 void
 movingSystem(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_point)
@@ -393,9 +311,9 @@ inititems(void)
 		semSW = sem_create("SW", 1);
 		semSE = sem_create("SE", 1);
 		waitNW = sem_create("WAITNW", 2);
-                waitNE = sem_create("WAITNE", 2);
-                waitSW = sem_create("WAITSW", 2);
-                waitSE = sem_create("WAITSE", 2);
+				waitNE = sem_create("WAITNE", 2);
+				waitSW = sem_create("WAITSW", 2);
+				waitSE = sem_create("WAITSE", 2);
 		KPRINT = sem_create("KPRINT", 1);
 		POINT = sem_create("POINT", 3);
 		if(POINT==NULL) {
@@ -493,7 +411,7 @@ semtest(int nargs, char **args)
 		result = thread_fork("semtest", NULL, semtestthread, (void*)cars, i);
 		if (result) {
 			panic("semtest: thread_fork failed: %s\n",
-			      strerror(result));
+				  strerror(result));
 		}
 	}
 
@@ -504,8 +422,8 @@ semtest(int nargs, char **args)
 	for (i=0; i<NTHREADS*100000; i++);
 
 	for (i=0; i<NTHREADS*2; i++) {
-                P(donesem);             
-        }
+				P(donesem);             
+		}
 
 //	while(return_controller>0);
 
@@ -522,7 +440,7 @@ semtest(int nargs, char **args)
 //	V(testsem);
 //	V(testsem);
 	kprintf("-----------------------------------------------------------------------------------------\n");
-        kprintf("-----------------------------------------------------------------------------------------\n");
+		kprintf("-----------------------------------------------------------------------------------------\n");
 	kprintf("Semaphore test done.\n");
 	return 0;
 }
@@ -596,10 +514,10 @@ locktest(int nargs, char **args)
 
 	for (i=0; i<NTHREADS; i++) {
 		result = thread_fork("synchtest", NULL, locktestthread,
-				     NULL, i);
+					 NULL, i);
 		if (result) {
 			panic("locktest: thread_fork failed: %s\n",
-			      strerror(result));
+				  strerror(result));
 		}
 	}
 	for (i=0; i<NTHREADS; i++) {
@@ -676,7 +594,7 @@ cvtest(int nargs, char **args)
 		result = thread_fork("synchtest", NULL, cvtestthread, NULL, i);
 		if (result) {
 			panic("cvtest: thread_fork failed: %s\n",
-			      strerror(result));
+				  strerror(result));
 		}
 	}
 	for (i=0; i<NTHREADS; i++) {
