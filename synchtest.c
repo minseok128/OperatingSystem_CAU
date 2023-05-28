@@ -109,7 +109,8 @@ semtest(int nargs, char **args)
 	(void)args;
 
 	inititems();
-	kprintf("Starting semaphore test... 20203361 CHANG_MINSEOK\n");
+	kprintf("Starting semaphore test...");
+	kprintf("20203361 CHANG_MINSEOK\n");
 	kprintf("If this hangs, it's broken: ");
 	P(testsem);
 	P(testsem);
