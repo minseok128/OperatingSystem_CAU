@@ -143,18 +143,17 @@ pWaitPoint(int point)
 {
 	switch(point) {
 		case 4:
-				P(waitNW);
-				break;
+			P(waitNW);
+			break;
 		case 5:
-				P(waitNE);
-				break;
+			P(waitNE);
+			break;
 		case 6:
-				P(waitSE);
-				break;
+			P(waitSE);
+			break;
 		case 7:
-				P(waitSW);
-				break;
-
+			P(waitSW);
+			break;
 	}
 }
 void
@@ -162,17 +161,17 @@ vWaitPoint(int point)
 {
 	switch(point) {
 		case 4:
-				V(waitNW);
-				break;
+			V(waitNW);
+			break;
 		case 5:
-				V(waitNE);
-				break;
+			V(waitNE);
+			break;
 		case 6:
-				V(waitSE);
-				break;
+			V(waitSE);
+			break;
 		case 7:
-				V(waitSW);
-				break;
+			V(waitSW);
+			break;
 	}
 }
 
@@ -278,6 +277,7 @@ turnLeft(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_poi
 
 	V(POINT);
 	vCardinalPoint(route2);
+}
 // Moving System
 void
 movingSystem(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_point)
