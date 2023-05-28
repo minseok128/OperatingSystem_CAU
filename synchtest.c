@@ -36,7 +36,7 @@
 #include <clock.h>
 #include <thread.h>
 #include <synch.h>
-#include <test.h>
+#include "test.h"
 
 
 #define NSEMLOOPS     63
