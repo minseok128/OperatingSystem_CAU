@@ -284,13 +284,12 @@ movingSystem(unsigned long car_num, CardinalPoint start_point, CardinalPoint end
 {
 	int i;
 	pWaitPoint(start_point+4);
-	if (end_point==(start_point+2)||end_point==(start_point-2))
+	if ((start_point + 2) % 4 == end_point)
 		goStraight(car_num, start_point, end_point);
-	else if (end_point==(start_point+3)||end_point==(start_point-1))
+	else if ((start_point + 3) % 4 == end_point)
 		turnRight(car_num, start_point, end_point);
-	else if (end_point==(start_point+1)||end_point==(start_point-3))
+	else if ((start_point + 1) % 4 == end_point)
 		turnLeft(car_num, start_point, end_point);
-	for(i=0; i<5000; i++);
 	vWaitPoint(start_point+4);
 }
 
