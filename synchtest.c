@@ -404,11 +404,11 @@ semtest(int nargs, char **args)
 		}
 	}
 
-	// for (i=0; i<NTHREADS; i++) {
-	// 	V(donesem);
-	// }
-
 	for (i=0; i<NTHREADS; i++) {
+		V(donesem);
+	}
+
+	for (i=0; i<NTHREADS*2; i++) {
 		P(donesem);
 	}
 
