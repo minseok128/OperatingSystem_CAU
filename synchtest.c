@@ -363,23 +363,15 @@ semtestthread(void *cars, unsigned long car_num)
 	}
 
 	// Print the approaching point of cars.
-	//P(KPRINT);
+	P(KPRINT);
 	kprintf("-----------------------------------------------------------------------------------------\n");
 	kprintf("[APPROACHING] CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
 	kprintf("-----------------------------------------------------------------------------------------\n");
-	//V(KPRINT);
-
-	for (int i=0; i<50; i++);
+	V(KPRINT);
 
 	// Move the car with the moving system.
 	movingSystem(car_num, start_point, end_point);
 	car[car_num].t_state = S_ZOMBIE;
-	
-//	return_controller--;
-//	P(KPRINT);
-//        kprintf("***DONE Thread: %lu\n", car_num);
-//	V(KPRINT);
-//        V(KPRINT);
 	V(donesem);
 }
 
@@ -403,27 +395,22 @@ semtest(int nargs, char **args)
 
 
 	// Generate car threads
-	Thread *cars = NULL;
-	cars = (Thread*)kmalloc(sizeof(Thread)*NTHREADS);
+	Thread *cars = (Thread*)kmalloc(sizeof(Thread)*NTHREADS);
 	for (i=0; i<NTHREADS; i++) {
 		result = thread_fork("semtest", NULL, semtestthread, (void*)cars, i);
 		if (result) {
 			panic("semtest: thread_fork failed: %s\n",
-				  strerror(result));
+				strerror(result));
 		}
 	}
+
+	// for (i=0; i<NTHREADS; i++) {
+	// 	V(donesem);
+	// }
 
 	for (i=0; i<NTHREADS; i++) {
-		V(donesem);			
+		P(donesem);
 	}
-	
-	for (i=0; i<NTHREADS*100000; i++);
-
-	for (i=0; i<NTHREADS*2; i++) {
-				P(donesem);             
-		}
-
-//	while(return_controller>0);
 
 	// Free threads
 	if (cars!=NULL) {
@@ -435,10 +422,10 @@ semtest(int nargs, char **args)
 	V(KPRINT);
 	
 	/* so we can run it again */
-//	V(testsem);
-//	V(testsem);
+	//	V(testsem);
+	//	V(testsem);
 	kprintf("-----------------------------------------------------------------------------------------\n");
-		kprintf("-----------------------------------------------------------------------------------------\n");
+	kprintf("-----------------------------------------------------------------------------------------\n");
 	kprintf("Semaphore test done.\n");
 	return 0;
 }
