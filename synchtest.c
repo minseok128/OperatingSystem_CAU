@@ -356,8 +356,7 @@ semtestthread(void *cars, unsigned long car_num)
 	CardinalPoint start_point;
 	CardinalPoint end_point;
 	// Generate two different random numbers in 0~3.
-	start_point = random()%4;
-	end_point = random()%4;
+	start_point = end_point = random()%4;
 	while (start_point==end_point) {
 		end_point = random()%4;
 	}
