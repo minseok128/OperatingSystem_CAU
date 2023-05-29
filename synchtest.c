@@ -408,7 +408,7 @@ semtest(int nargs, char **args)
 		V(donesem);
 	}
 
-	for (i=0; i<NTHREADS*2; i++) {
+	for (i=0; i<NTHREADS; i++) {
 		P(donesem);
 	}
 
@@ -422,8 +422,6 @@ semtest(int nargs, char **args)
 	V(KPRINT);
 	
 	/* so we can run it again */
-	//	V(testsem);
-	//	V(testsem);
 	kprintf("-----------------------------------------------------------------------------------------\n");
 	kprintf("-----------------------------------------------------------------------------------------\n");
 	kprintf("Semaphore test done.\n");
