@@ -363,11 +363,11 @@ semtestthread(void *cars, unsigned long car_num)
 	}
 
 	// Print the approaching point of cars.
-	P(KPRINT);
+	//P(KPRINT);
 	kprintf("-----------------------------------------------------------------------------------------\n");
 	kprintf("[APPROACHING] CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
 	kprintf("-----------------------------------------------------------------------------------------\n");
-	V(KPRINT);
+	//V(KPRINT);
 
 	for (int i=0; i<50; i++);
 
