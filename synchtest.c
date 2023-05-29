@@ -282,7 +282,6 @@ turnLeft(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_poi
 void
 movingSystem(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_point)
 {
-	int i;
 	pWaitPoint(start_point+4);
 	if ((start_point + 2) % 4 == end_point)
 		goStraight(car_num, start_point, end_point);
