@@ -408,7 +408,7 @@ semtest(int nargs, char **args)
 		V(donesem);
 	}
 
-	//for (i=0; i<NTHREADS*100000; i++);
+	for (i=0; i<NTHREADS*100000; i++);
 
 	for (i=0; i<NTHREADS * 2; i++) {
 		P(donesem);
