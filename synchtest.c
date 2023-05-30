@@ -157,7 +157,7 @@ print_state(int car, int start, int dest, int before, int crr)
 
 	kprintf("car = %d, in = %s, out = %s : %s->%s", car, get_dir(start), get_dir(dest), get_dir(before), get_dir(crr));
 	if (crr == dest)
-		kprintf(" done");
+		kprintf("\tGOAL!!");
 	kprintf("\n\n\n");
 	V(donesem);
 }
