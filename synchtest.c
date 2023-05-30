@@ -36,346 +36,78 @@
 #include <clock.h>
 #include <thread.h>
 #include <synch.h>
-#include "test.h"
+#include <test.h>
 
-
-#define NSEMLOOPS     63
-#define NLOCKLOOPS    120
-#define NCVLOOPS      5
-#define NTHREADS      32
-
+#define NSEMLOOPS 63
+#define NLOCKLOOPS 120
+#define NCVLOOPS 5
+#define NTHREADS 32
 
 static volatile unsigned long testval1;
 static volatile unsigned long testval2;
 static volatile unsigned long testval3;
-
-/* Semaphores */
 static struct semaphore *testsem;
 static struct lock *testlock;
 static struct cv *testcv;
 static struct semaphore *donesem;
-// Define semaphores for intersection points.
-static struct semaphore *semNW;
-static struct semaphore *semNE;
-static struct semaphore *semSW;
-static struct semaphore *semSE;
-static struct semaphore *waitNW;
-static struct semaphore *waitNE;
-static struct semaphore *waitSW;
-static struct semaphore *waitSE;
-// Define the semaphore for printing messages.
-static struct semaphore *KPRINT;
-// Define the semaphore for moving cars.
-static struct semaphore *POINT;
-// Define the global variable for counting the number fo cars above the intersection. (ex. 0: 1 car above the intersection)
 
-/* Threads */
-typedef struct thread Thread;
-
-
-/* Intesection points */
-// Get intersection points to string.
-const char* 
-getCardinalPoint(CardinalPoint point)
-{
-	switch(point) {
-		case NORTH:
-			return "NORTH";
-		case EAST:
-			return " EAST";
-		case SOUTH:
-			return "SOUTH";
-		case WEST:
-			return " WEST";
-		case NW:
-			return "NW";
-		case NE:
-			return "NE";
-		case SE:
-			return "SE";
-		case SW:
-			return "SW";
-	}
-	return NULL;
-}
-
-
-/* Moving system */
-void
-pCardinalPoint(int cardinal_point)
-{
-	switch(cardinal_point) {
-		case 4:
-			P(semNW);
-			break;
-		case 5:
-			P(semNE);
-			break;
-		case 6:
-			P(semSE);
-			break;
-		case 7:
-			P(semSW);
-			break;
-
-	}
-}
-void
-vCardinalPoint(int cardinal_point)
-{
-	switch(cardinal_point) {
-		case 4:
-				V(semNW);
-				break;
-		case 5:
-				V(semNE);
-				break;
-		case 6:
-				V(semSE);
-				break;
-		case 7:
-				V(semSW);
-				break;
-	}
-}
-void
-pWaitPoint(int point)
-{
-	switch(point) {
-		case 4:
-			P(waitNW);
-			break;
-		case 5:
-			P(waitNE);
-			break;
-		case 6:
-			P(waitSE);
-			break;
-		case 7:
-			P(waitSW);
-			break;
-	}
-}
-void
-vWaitPoint(int point)
-{
-	switch(point) {
-		case 4:
-			V(waitNW);
-			break;
-		case 5:
-			V(waitNE);
-			break;
-		case 6:
-			V(waitSE);
-			break;
-		case 7:
-			V(waitSW);
-			break;
-	}
-}
-
-// Go Straight.
-void
-goStraight(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_point)
-{
-	int route;
-	pCardinalPoint(start_point+4);
-	P(POINT);
-
-	// Print the current point.
-	P(KPRINT);
-	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (GO STRAIGHT)\n", getCardinalPoint(start_point+4), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-	route = start_point+3;
-	if(route<4)
-		route = 7;
-	V(KPRINT);
-
-	pCardinalPoint(route);
-	vCardinalPoint(start_point+4);
-
-	// Print the current point	
-	P(KPRINT);
-	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (GO STRAIGHT)\n", getCardinalPoint(route), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-	V(KPRINT);
-
-	// Print the exiting point of cars.
-	P(KPRINT);
-	kprintf("-----------------------------------------------------------------------------------------\n");
-	kprintf("[LEAVING]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-
-	kprintf("-----------------------------------------------------------------------------------------\n");
-	V(KPRINT);
-	V(POINT);
-	vCardinalPoint(route);
-}
-// Turn Right.
-void
-turnRight(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_point)
-{
-	pCardinalPoint(start_point+4);
-
-	// Print the current point.
-	P(KPRINT);
-	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN RIGHT)\n", getCardinalPoint(start_point+4), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-
-	V(KPRINT);
-
-// Print the exiting point of cars.
-	P(KPRINT);
-	kprintf("-----------------------------------------------------------------------------------------\n");
-	kprintf("[LEAVING]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-
-	kprintf("-----------------------------------------------------------------------------------------\n");
-	V(KPRINT);
-
-	vCardinalPoint(start_point+4);
-}
-// Turn Left.
-void
-turnLeft(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_point)
-{
-	int route1;
-	int route2;
-
-	pCardinalPoint(start_point+4);
-	P(POINT);
-
-	// Print the current point.
-	P(KPRINT);
-	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN LEFT)\n", getCardinalPoint(start_point+4), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-	route1 = start_point+3;
-	if(route1<4)
-		route1 = 7;
-	V(KPRINT);
-	
-	for (int i=0; i<100; i++);
-		pCardinalPoint(route1);
-	vCardinalPoint(start_point+4);
-
-	// Print the current point
-	P(KPRINT);
-	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN LEFT)\n", getCardinalPoint(route1), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));	
-	route2 = route1-1;
-	if(route2<4)
-		route2 = 7;
-	V(KPRINT);
-	pCardinalPoint(route2);
-	vCardinalPoint(route1);
-	// Print the current point      
-	P(KPRINT);
-	kprintf("[MOVE %s]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s (TURN LEFT)\n", getCardinalPoint(route2), car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-	V(KPRINT);
-
-	// Print the exiting point of cars.
-	P(KPRINT);
-	kprintf("-----------------------------------------------------------------------------------------\n");
-	kprintf("[LEAVING]     CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-
-	kprintf("-----------------------------------------------------------------------------------------\n");
-	V(KPRINT);
-
-	V(POINT);
-	vCardinalPoint(route2);
-}
-// Moving System
-void
-movingSystem(unsigned long car_num, CardinalPoint start_point, CardinalPoint end_point)
-{
-	pWaitPoint(start_point+4);
-	if ((start_point + 2) % 4 == end_point)
-		goStraight(car_num, start_point, end_point);
-	else if ((start_point + 3) % 4 == end_point)
-		turnRight(car_num, start_point, end_point);
-	else if ((start_point + 1) % 4 == end_point)
-		turnLeft(car_num, start_point, end_point);
-	vWaitPoint(start_point+4);
-}
-
-
-/*
- * Test code
- */
-
-/* Initialize semaphores*/
-static
-void
+static void
 inititems(void)
 {
-	// Initialize semaphores
-	if(POINT==NULL) {
-		semNW = sem_create("NW", 1);
-		semNE = sem_create("NE", 1);
-		semSW = sem_create("SW", 1);
-		semSE = sem_create("SE", 1);
-		waitNW = sem_create("WAITNW", 2);
-				waitNE = sem_create("WAITNE", 2);
-				waitSW = sem_create("WAITSW", 2);
-				waitSE = sem_create("WAITSE", 2);
-		KPRINT = sem_create("KPRINT", 1);
-		POINT = sem_create("POINT", 3);
-		if(POINT==NULL) {
+	if (testsem == NULL)
+	{
+		testsem = sem_create("testsem", 2);
+		if (testsem == NULL)
+		{
 			panic("synchtest: sem_create failed\n");
 		}
 	}
-
-	if (testsem==NULL) {
-		testsem = sem_create("testsem", 1);
-		if (testsem == NULL) {
-			panic("synchtest: sem_create failed\n");
-		}
-	}
-	if (testlock==NULL) {
+	if (testlock == NULL)
+	{
 		testlock = lock_create("testlock");
-		if (testlock == NULL) {
+		if (testlock == NULL)
+		{
 			panic("synchtest: lock_create failed\n");
 		}
 	}
-	if (testcv==NULL) {
+	if (testcv == NULL)
+	{
 		testcv = cv_create("testlock");
-		if (testcv == NULL) {
+		if (testcv == NULL)
+		{
 			panic("synchtest: cv_create failed\n");
 		}
 	}
-	if (donesem==NULL) {
+	if (donesem == NULL)
+	{
 		donesem = sem_create("donesem", 0);
-		if (donesem == NULL) {
+		if (donesem == NULL)
+		{
 			panic("synchtest: sem_create failed\n");
 		}
 	}
 }
 
-static
-void
-semtestthread(void *cars, unsigned long car_num)
+static void
+semtestthread(void *junk, unsigned long num)
 {
-	P(donesem);
-	Thread *car = (Thread*)cars;
+	int i;
+	(void)junk;
 
-	// Define start and end points of cars.
-	CardinalPoint start_point;
-	CardinalPoint end_point;
-	// Generate two different random numbers in 0~3.
-	start_point = end_point = random()%4;
-	while (start_point==end_point) {
-		end_point = random()%4;
+	/*
+	 * Only one of these should print at a time.
+	 */
+	P(testsem);
+	kprintf("Thread %2lu: ", num);
+	for (i = 0; i < NSEMLOOPS; i++)
+	{
+		kprintf("%c", (int)num + 64);
 	}
-
-	// Print the approaching point of cars.
-	P(KPRINT);
-	kprintf("-----------------------------------------------------------------------------------------\n");
-	kprintf("[APPROACHING] CAR NUMBER: %2lu| APPROACHING POINT: %s, TARGET POINT: %s\n", car_num, getCardinalPoint(start_point), getCardinalPoint(end_point));
-	kprintf("-----------------------------------------------------------------------------------------\n");
-	V(KPRINT);
-
-	// Move the car with the moving system.
-	movingSystem(car_num, start_point, end_point);
-	car[car_num].t_state = S_ZOMBIE;
+	kprintf("\n");
 	V(donesem);
 }
 
-int
-semtest(int nargs, char **args)
+int semtest(int nargs, char **args)
 {
 	int i, result;
 
@@ -384,53 +116,37 @@ semtest(int nargs, char **args)
 
 	inititems();
 	kprintf("Starting semaphore test...\n");
+	kprintf("20203361 CHANG_MINSEOK\n");
 	kprintf("If this hangs, it's broken: ");
-	for (i=0; i<NTHREADS; i++) {
-		V(donesem);
-	}
+	P(testsem);
+	P(testsem);
 	kprintf("ok\n");
-	kprintf("-----------------------------------------------------------------------------------------\n");
-	kprintf("-----------------------------------------------------------------------------------------\n");
 
-
-	// Generate car threads
-	Thread *cars = (Thread*)kmalloc(sizeof(Thread)*NTHREADS);
-	for (i=0; i<NTHREADS; i++) {
-		result = thread_fork("semtest", NULL, semtestthread, (void*)cars, i);
-		if (result) {
+	for (i = 0; i < NTHREADS; i++)
+	{
+		result = thread_fork("semtest", NULL, semtestthread, NULL, i);
+		if (result)
+		{
 			panic("semtest: thread_fork failed: %s\n",
-				strerror(result));
+				  strerror(result));
 		}
 	}
 
-	for (i=0; i<NTHREADS; i++) {
-		V(donesem);
-	}
-
-	for (i=0; i<NTHREADS*100000; i++);
-
-	for (i=0; i<NTHREADS * 2; i++) {
+	for (i = 0; i < NTHREADS; i++)
+	{
+		V(testsem);
 		P(donesem);
 	}
 
-	// Free threads
-	if (cars!=NULL) {
-		kfree(cars);
-		cars = NULL;
-	}
-	P(KPRINT);
-	kprintf("Free Threads.\n");
-	V(KPRINT);
-	
 	/* so we can run it again */
-	kprintf("-----------------------------------------------------------------------------------------\n");
-	kprintf("-----------------------------------------------------------------------------------------\n");
+	V(testsem);
+	V(testsem);
+
 	kprintf("Semaphore test done.\n");
 	return 0;
 }
 
-static
-void
+static void
 fail(unsigned long num, const char *msg)
 {
 	kprintf("thread %lu: Mismatch on %s\n", num, msg);
@@ -442,40 +158,46 @@ fail(unsigned long num, const char *msg)
 	thread_exit();
 }
 
-static
-void
+static void
 locktestthread(void *junk, unsigned long num)
 {
 	int i;
 	(void)junk;
 
-	for (i=0; i<NLOCKLOOPS; i++) {
+	for (i = 0; i < NLOCKLOOPS; i++)
+	{
 		lock_acquire(testlock);
 		testval1 = num;
-		testval2 = num*num;
-		testval3 = num%3;
+		testval2 = num * num;
+		testval3 = num % 3;
 
-		if (testval2 != testval1*testval1) {
+		if (testval2 != testval1 * testval1)
+		{
 			fail(num, "testval2/testval1");
 		}
 
-		if (testval2%3 != (testval3*testval3)%3) {
+		if (testval2 % 3 != (testval3 * testval3) % 3)
+		{
 			fail(num, "testval2/testval3");
 		}
 
-		if (testval3 != testval1%3) {
+		if (testval3 != testval1 % 3)
+		{
 			fail(num, "testval3/testval1");
 		}
 
-		if (testval1 != num) {
+		if (testval1 != num)
+		{
 			fail(num, "testval1/num");
 		}
 
-		if (testval2 != num*num) {
+		if (testval2 != num * num)
+		{
 			fail(num, "testval2/num");
 		}
 
-		if (testval3 != num%3) {
+		if (testval3 != num % 3)
+		{
 			fail(num, "testval3/num");
 		}
 
@@ -484,9 +206,7 @@ locktestthread(void *junk, unsigned long num)
 	V(donesem);
 }
 
-
-int
-locktest(int nargs, char **args)
+int locktest(int nargs, char **args)
 {
 	int i, result;
 
@@ -496,15 +216,18 @@ locktest(int nargs, char **args)
 	inititems();
 	kprintf("Starting lock test...\n");
 
-	for (i=0; i<NTHREADS; i++) {
+	for (i = 0; i < NTHREADS; i++)
+	{
 		result = thread_fork("synchtest", NULL, locktestthread,
-					 NULL, i);
-		if (result) {
+							 NULL, i);
+		if (result)
+		{
 			panic("locktest: thread_fork failed: %s\n",
 				  strerror(result));
 		}
 	}
-	for (i=0; i<NTHREADS; i++) {
+	for (i = 0; i < NTHREADS; i++)
+	{
 		P(donesem);
 	}
 
@@ -513,8 +236,7 @@ locktest(int nargs, char **args)
 	return 0;
 }
 
-static
-void
+static void
 cvtestthread(void *junk, unsigned long num)
 {
 	int i;
@@ -523,9 +245,11 @@ cvtestthread(void *junk, unsigned long num)
 
 	(void)junk;
 
-	for (i=0; i<NCVLOOPS; i++) {
+	for (i = 0; i < NCVLOOPS; i++)
+	{
 		lock_acquire(testlock);
-		while (testval1 != num) {
+		while (testval1 != num)
+		{
 			gettime(&ts1);
 			cv_wait(testcv, testlock);
 			gettime(&ts2);
@@ -534,24 +258,25 @@ cvtestthread(void *junk, unsigned long num)
 			timespec_sub(&ts2, &ts1, &ts2);
 
 			/* Require at least 2000 cpu cycles (we're 25mhz) */
-			if (ts2.tv_sec == 0 && ts2.tv_nsec < 40*2000) {
+			if (ts2.tv_sec == 0 && ts2.tv_nsec < 40 * 2000)
+			{
 				kprintf("cv_wait took only %u ns\n",
-					ts2.tv_nsec);
+						ts2.tv_nsec);
 				kprintf("That's too fast... you must be "
-					"busy-looping\n");
+						"busy-looping\n");
 				V(donesem);
 				thread_exit();
 			}
-
 		}
 		kprintf("Thread %lu\n", num);
-		testval1 = (testval1 + NTHREADS - 1)%NTHREADS;
+		testval1 = (testval1 + NTHREADS - 1) % NTHREADS;
 
 		/*
 		 * loop a little while to make sure we can measure the
 		 * time waiting on the cv.
 		 */
-		for (j=0; j<3000; j++);
+		for (j = 0; j < 3000; j++)
+			;
 
 		cv_broadcast(testcv, testlock);
 		lock_release(testlock);
@@ -559,8 +284,7 @@ cvtestthread(void *junk, unsigned long num)
 	V(donesem);
 }
 
-int
-cvtest(int nargs, char **args)
+int cvtest(int nargs, char **args)
 {
 
 	int i, result;
@@ -572,16 +296,19 @@ cvtest(int nargs, char **args)
 	kprintf("Starting CV test...\n");
 	kprintf("Threads should print out in reverse order.\n");
 
-	testval1 = NTHREADS-1;
+	testval1 = NTHREADS - 1;
 
-	for (i=0; i<NTHREADS; i++) {
+	for (i = 0; i < NTHREADS; i++)
+	{
 		result = thread_fork("synchtest", NULL, cvtestthread, NULL, i);
-		if (result) {
+		if (result)
+		{
 			panic("cvtest: thread_fork failed: %s\n",
 				  strerror(result));
 		}
 	}
-	for (i=0; i<NTHREADS; i++) {
+	for (i = 0; i < NTHREADS; i++)
+	{
 		P(donesem);
 	}
 
@@ -607,8 +334,7 @@ static struct lock *testlocks[NCVS];
 static struct semaphore *gatesem;
 static struct semaphore *exitsem;
 
-static
-void
+static void
 sleepthread(void *junk1, unsigned long junk2)
 {
 	unsigned i, j;
@@ -616,8 +342,10 @@ sleepthread(void *junk1, unsigned long junk2)
 	(void)junk1;
 	(void)junk2;
 
-	for (j=0; j<NLOOPS; j++) {
-		for (i=0; i<NCVS; i++) {
+	for (j = 0; j < NLOOPS; j++)
+	{
+		for (i = 0; i < NCVS; i++)
+		{
 			lock_acquire(testlocks[i]);
 			V(gatesem);
 			cv_wait(testcvs[i], testlocks[i]);
@@ -628,8 +356,7 @@ sleepthread(void *junk1, unsigned long junk2)
 	V(exitsem);
 }
 
-static
-void
+static void
 wakethread(void *junk1, unsigned long junk2)
 {
 	unsigned i, j;
@@ -637,8 +364,10 @@ wakethread(void *junk1, unsigned long junk2)
 	(void)junk1;
 	(void)junk2;
 
-	for (j=0; j<NLOOPS; j++) {
-		for (i=0; i<NCVS; i++) {
+	for (j = 0; j < NLOOPS; j++)
+	{
+		for (i = 0; i < NCVS; i++)
+		{
 			P(gatesem);
 			lock_acquire(testlocks[i]);
 			cv_signal(testcvs[i], testlocks[i]);
@@ -649,8 +378,7 @@ wakethread(void *junk1, unsigned long junk2)
 	V(exitsem);
 }
 
-int
-cvtest2(int nargs, char **args)
+int cvtest2(int nargs, char **args)
 {
 	unsigned i;
 	int result;
@@ -658,7 +386,8 @@ cvtest2(int nargs, char **args)
 	(void)nargs;
 	(void)args;
 
-	for (i=0; i<NCVS; i++) {
+	for (i = 0; i < NCVS; i++)
+	{
 		testlocks[i] = lock_create("cvtest2 lock");
 		testcvs[i] = cv_create("cvtest2 cv");
 	}
@@ -668,11 +397,13 @@ cvtest2(int nargs, char **args)
 	kprintf("cvtest2...\n");
 
 	result = thread_fork("cvtest2", NULL, sleepthread, NULL, 0);
-	if (result) {
+	if (result)
+	{
 		panic("cvtest2: thread_fork failed\n");
 	}
 	result = thread_fork("cvtest2", NULL, wakethread, NULL, 0);
-	if (result) {
+	if (result)
+	{
 		panic("cvtest2: thread_fork failed\n");
 	}
 
@@ -682,7 +413,8 @@ cvtest2(int nargs, char **args)
 	sem_destroy(exitsem);
 	sem_destroy(gatesem);
 	exitsem = gatesem = NULL;
-	for (i=0; i<NCVS; i++) {
+	for (i = 0; i < NCVS; i++)
+	{
 		lock_destroy(testlocks[i]);
 		cv_destroy(testcvs[i]);
 		testlocks[i] = NULL;
