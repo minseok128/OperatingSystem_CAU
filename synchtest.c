@@ -158,7 +158,7 @@ message_function(int car_num, int start, int before, int current, int after, int
 	{
 		/* 목적지에 도착하여 교차로를 빠져나올 때 */
 		P(testsem);
-		kprintf("car: %d, arrive %s, start: %s\n", car_num, destination, start);
+		kprintf("car: %d, arrive %s, start: %s\n", car_num, get_direction_by_num(destination), get_direction_by_num(start));
 		V(donesem);
 	}
 	else
