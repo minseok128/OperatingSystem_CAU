@@ -172,7 +172,7 @@ message_function(int car_num, int start, int before, int current, int after, int
 }
 
 static void
-gostraightprocess(int car_num, int start_num, int end_num, int s1, int s2, struct semaphore *s1_sem, struct semaphore *s2_sem)
+gostraight_process(int car_num, int start_num, int end_num, int s1, int s2, struct semaphore *s1_sem, struct semaphore *s2_sem)
 {
 	/* 직진 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치, s2_sem는 다음에 이동한 교차로의 위치 */
 	P(INTER); // 교차로 진입
@@ -193,16 +193,16 @@ gostraight(int car_num, int start_num, int end_num)
 	switch (start_num)
 	{
 	case 0:
-		gostraightprocess(car_num, start_num, end_num, 4, 7, SE, SW);
+		gostraight_process(car_num, start_num, end_num, 4, 7, SE, SW);
 		break;
 	case 1:
-		gostraightprocess(car_num, start_num, end_num, 5, 4, NE, SE);
+		gostraight_process(car_num, start_num, end_num, 5, 4, NE, SE);
 		break;
 	case 2:
-		gostraightprocess(car_num, start_num, end_num, 6, 5, NW, NE);
+		gostraight_process(car_num, start_num, end_num, 6, 5, NW, NE);
 		break;
 	case 3:
-		gostraightprocess(car_num, start_num, end_num, 7, 6, SW, NW);
+		gostraight_process(car_num, start_num, end_num, 7, 6, SW, NW);
 		break;
 	}
 }
@@ -235,7 +235,7 @@ int semtest(int nargs, char **args)
 
 	inititems();
 	kprintf("Starting semaphore test...\n");
-	kprintf("20203361 CHANG_MINSEOK\n");
+	kprintf("20203361 Chang Minseok\n");
 	kprintf("If this hangs, it's broken: ");
 	P(testsem);
 	P(testsem);
