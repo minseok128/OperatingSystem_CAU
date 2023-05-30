@@ -286,23 +286,40 @@ message_function(int car_num, int start, int before, int current, int destinatio
 static void
 move(int car_num, int start_num, int end_num, int type)
 {
-	int i;
+	int i = 0;
 	P(INTER);
-	for (i = 0; i < type + 1; i++)
+
+	P(FIELD[necessary_info[start_num][i] - 4]);
+	message_function(car_num, start_num, start_num, necessary_info[start_num][i], end_num);
+	for (i = 1; i < type; i++)
 	{
 		P(FIELD[necessary_info[start_num][i] - 4]);
-	}
-
-	i = 0;
-	message_function(car_num, start_num, start_num, necessary_info[start_num][i], end_num);
-	for (i = 1; i <= type; i++)
-	{
 		message_function(car_num, start_num, necessary_info[start_num][i - 1], necessary_info[start_num][i], end_num);
 		V(FIELD[necessary_info[start_num][i - 1] - 4]);
 	}
-	message_function(car_num, start_num, necessary_info[start_num][i - 1], end_num, end_num);
 	V(FIELD[necessary_info[start_num][type] - 4]);
+	message_function(car_num, start_num, necessary_info[start_num][type - 1], end_num, end_num);
+
 	V(INTER);
+
+	// int i;
+
+	// P(INTER);
+	// for (i = 0; i < type + 1; i++)
+	// {
+	// 	P(FIELD[necessary_info[start_num][i] - 4]);
+	// }
+
+	// i = 0;
+	// message_function(car_num, start_num, start_num, necessary_info[start_num][i], end_num);
+	// for (i = 1; i < type; i++)
+	// {
+	// 	message_function(car_num, start_num, necessary_info[start_num][i - 1], necessary_info[start_num][i], end_num);
+	// 	V(FIELD[necessary_info[start_num][i - 1] - 4]);
+	// }
+	// message_function(car_num, start_num, necessary_info[start_num][i - 1], end_num, end_num);
+	// V(FIELD[necessary_info[start_num][type] - 4]);
+	// V(INTER);
 }
 
 static void
