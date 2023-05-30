@@ -87,11 +87,11 @@ static const char *
 get_turn_by_num(int start_num, int end_num)
 {
 	if ((start_num + 2) % 4 == end_num)
-		return ("go straight");
+		return ("going straight");
 	else if ((start_num + 3) % 4 == end_num)
-		return ("turn right");
+		return ("going right");
 	else
-		return ("turn left");
+		return ("going left");
 	return ("ERROR");
 }
 
@@ -165,7 +165,7 @@ message_create(int car_num, int start_num, int end_num)
 	kprintf("Car %d: ", car_num);
 	for (i = 0; i < NSEMLOOPS; i++)
 		kprintf("%c", (int)car_num + 64);
-	kprintf("\ncar: %d, waiting in %s to %s | go %s", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num), get_turn_by_num(start_num, end_num));
+	kprintf("\ncar: %d, waiting in %s to %s | %s", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num), get_turn_by_num(start_num, end_num));
 	kprintf("\n\n");
 	V(donesem);
 }
@@ -174,7 +174,7 @@ static void
 message_function(int car_num, int start, int before, int current, int after, int destination)
 {
 	P(testsem);
-	kprintf("car# %d is comming from %s going %s\n", car_num, get_direction_by_num(start), get_turn_by_num(start, destination));
+	kprintf("car# %d is comming from %s %s\n", car_num, get_direction_by_num(start), get_turn_by_num(start, destination));
 
 	if (current == destination)
 		kprintf("car: %d, arrive %s, start: %s", car_num, get_direction_by_num(destination), get_direction_by_num(start));
