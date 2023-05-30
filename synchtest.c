@@ -211,7 +211,7 @@ gostraight(int car_num, int start_num, int end_num)
 }
 
 static void
-semtestthread(void *junk, unsigned long num)
+semtestthread(void *junk, int car_num)
 {
 	int start_num, end_num, i;
 	(void)junk;
@@ -233,7 +233,7 @@ semtestthread(void *junk, unsigned long num)
 	if ((start_num + 2) % 4 == end_num)
 	{
 		message_count += 3;
-		gostraight(num, start_num, end_num);
+		gostraight(car_num, start_num, end_num);
 	}
 }
 
