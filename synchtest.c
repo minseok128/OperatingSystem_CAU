@@ -144,7 +144,7 @@ inititems(void)
 	}
 }
 
-static void message_create(int car_num, char start_num, int end_num)
+static void message_create(int car_num, int end_num)
 {
 	/*스레드가 생성되었을 때 메시지 출력*/
 	char str[15];
@@ -157,7 +157,7 @@ static void message_create(int car_num, char start_num, int end_num)
 		strcpy(str, "turn left");
 
 	P(testsem);
-	kprintf("car: %d, waiting in %c to %s\n", car_num, start, str);
+	kprintf("car: %d, waiting in %c to %s\n", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num));
 	V(donesem);
 }
 
