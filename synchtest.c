@@ -147,6 +147,8 @@ inititems(void)
 static void
 message_create(int car_num, int start_num, int end_num)
 {
+	int i;
+
 	P(testsem);
 	for (i = 0; i < NSEMLOOPS; i++)
 		kprintf("%c", (int)car_num + 64);
