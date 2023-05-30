@@ -55,8 +55,15 @@ static struct semaphore *NW;
 static struct semaphore *NE;
 static struct semaphore *SW;
 static struct semaphore *SE;
+static struct semaphore *FIELD[4];
 static struct semaphore *INTER;
 int message_count = 0;
+
+int necessary_info[4][3] = {
+	{4, 7, 6},
+	{5, 4, 7},
+	{6, 5, 4},
+	{7, 6, 5}};
 
 static const char *
 get_direction_by_num(int num)
@@ -99,28 +106,28 @@ static void
 inititems(void)
 {
 	// 5개의 새운 세마포어 초기화
-	if (NW == NULL)
+	if (FIELD[0] == NULL)
 	{
-		NW = sem_create("NW", 1);
-		if (NW == NULL)
+		FIELD[0] = sem_create("NW", 1);
+		if (FIELD[0] == NULL)
 			panic("synchtest: sem_create failed\n");
 	}
-	if (NE == NULL)
+	if (FIELD[1] == NULL)
 	{
-		NE = sem_create("NE", 1);
-		if (NE == NULL)
+		FIELD[1] = sem_create("NE", 1);
+		if (FIELD[1] == NULL)
 			panic("synchtest: sem_create failed\n");
 	}
-	if (SW == NULL)
+	if (FIELD[2] == NULL)
 	{
-		SW = sem_create("SW", 1);
-		if (SW == NULL)
+		FIELD[2] = sem_create("SW", 1);
+		if (FIELD[2] == NULL)
 			panic("synchtest: sem_create failed\n");
 	}
-	if (SE == NULL)
+	if (FIELD[3] == NULL)
 	{
-		SE = sem_create("SE", 1);
-		if (SE == NULL)
+		FIELD[3] = sem_create("SE", 1);
+		if (FIELD[3] == NULL)
 			panic("synchtest: sem_create failed\n");
 	}
 	if (INTER == NULL)
@@ -179,13 +186,49 @@ straight_fun(int car_num, int start_num, int end_num, int s1, int s2, struct sem
 {
 	/* 직진 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치, s2_sem는 다음에 이동한 교차로의 위치 */
 	P(INTER); // 교차로 진입
+
 	P(s1_sem);
 	message_function(car_num, start_num, start_num, s1, end_num);
+
 	P(s2_sem);
 	message_function(car_num, start_num, s1, s2, end_num);
 	V(s1_sem);
+
 	message_function(car_num, start_num, s2, end_num, end_num);
 	V(s2_sem);
+
+	V(INTER); // 교차로 진입
+}
+
+static void leftturnprocess(int car_num, const char *start, struct semaphore *step1, struct semaphore *step2, struct semaphore *step3, const char *dest)
+{
+	/* 좌회전 과정을 나타내는 함수. 과정은 gostraight과 유사 */
+	P(INTER); // 교차로 진입
+
+	P(step1);
+	message_function(car_num, start, start, step1->sem_name, step2->sem_name, dest);
+
+	P(step2);
+	message_function(car_num, start, step1->sem_name, step2->sem_name, step3->sem_name, dest);
+
+	P(step3);
+
+	V(step1);
+	message_function(car_num, start, step2->sem_name, step3->sem_name, dest, dest);
+	V(step2);
+	message_function(car_num, start, step3->sem_name, dest, dest, dest);
+	V(step3);
+	V(INTER); // 교차로 진입
+}
+static void
+right_fun(int car_num, int start_num, int end_num, int s1, struct semaphore *s1_sem)
+{
+	/* 우회전 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치 */
+	P(INTER); // 교차로 진입
+	P(s1_sem);
+	message_function(car_num, start_num, start_num, s1, end_num);
+	V(s1_sem);
+	message_function(car_num, start_num, s1, end_num, end_num);
 	V(INTER); // 교차로 진입
 }
 
@@ -211,15 +254,26 @@ straight(int car_num, int start_num, int end_num)
 }
 
 static void
-right_fun(int car_num, int start_num, int end_num, int s1, struct semaphore *s1_sem)
+move(int car_num, int start_num, int end_num, int type)
 {
-	/* 우회전 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치 */
-	P(INTER); // 교차로 진입
-	P(s1_sem);
-	message_function(car_num, start_num, start_num, s1, end_num);
-	V(s1_sem);
-	message_function(car_num, start_num, s1, end_num, end_num);
-	V(INTER); // 교차로 진입
+	int i;
+	P(INTER);
+	for (i = 0; i < type + 1; i++)
+	{
+		P(FIELD[necessary_info[i] - 4]);
+	}
+
+	i = 0;
+	message_function(car_num, start_num, start_num, necessary_info[i], end_num);
+	v(FIELD[necessary_info[i] - 4]);
+	for (i = 1; i < type + 1; i++)
+	{
+		message_function(car_num, start_num, necessary_info[i], necessary_info[i + 1], end_num);
+		V(FIELD[necessary_info[i] - 4]);
+	}
+	message_function(car_num, start_num, necessary_info[i], end_num, end_num);
+	v(FIELD[necessary_info[i] - 4]);
+	V(INTER);
 }
 
 static void
@@ -267,12 +321,14 @@ semtestthread(void *junk, unsigned long car_num)
 	if ((start_num + 2) % 4 == end_num)
 	{
 		message_count += 3;
-		straight(car_num, start_num, end_num);
+		move(car_num, start_num, end_num, 1);
+		// straight(car_num, start_num, end_num);
 	}
 	else if ((start_num + 3) % 4 == end_num)
 	{
 		message_count += 2;
-		right(car_num, start_num, end_num);
+		move(car_num, start_num, end_num, 0);
+		// right(car_num, start_num, end_num);
 	}
 }
 
