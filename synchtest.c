@@ -181,7 +181,7 @@ message_function(int car_num, int start, int before, int current, int destinatio
 		kprintf("%c", (int)car_num + 64);
 	kprintf("\ncar# %d is comming from %s %s\n", car_num, get_direction_by_num(start), get_turn_by_num(start, destination));
 
-	kprintf("car = %d, in = %s, out = %s : %s->%s", car_num, get_direction_by_num(before), get_direction_by_num(destination), get_direction_by_num(before), get_direction_by_num(current));
+	kprintf("car = %d, in = %s, out = %s : %s->%s", car_num, get_direction_by_num(start), get_direction_by_num(destination), get_direction_by_num(before), get_direction_by_num(current));
 	if (current == destination)
 		kprintf(" done");
 	kprintf("\n\n\n");
