@@ -68,17 +68,17 @@ get_direction_by_num(int num)
 	case 1:
 		return ("E");
 	case 2:
-		return ("W");
-	case 3:
 		return ("S");
+	case 3:
+		return ("W");
 	case 4:
-		return ("NS");
+		return ("NW");
 	case 5:
 		return ("NE");
 	case 6:
-		return ("WE");
+		return ("SE");
 	case 7:
-		return ("WS");
+		return ("SW");
 	}
 	return ("ERROR");
 }
@@ -181,10 +181,9 @@ message_function(int car_num, int start, int before, int current, int after, int
 		kprintf("%c", (int)car_num + 64);
 	kprintf("\ncar# %d is comming from %s %s\n", car_num, get_direction_by_num(start), get_turn_by_num(start, destination));
 
-	if (current == destination)
+	kprintf("car = %d, in = %s, out = %s : %s", ) if (current == destination)
 		kprintf("car: %d, arrive %s, start: %s", car_num, get_direction_by_num(destination), get_direction_by_num(start));
-	else
-		kprintf("car: %d, moved %s -> %s, start: %s, after: %s, dest: %s", car_num, get_direction_by_num(before), get_direction_by_num(current), get_direction_by_num(start), get_direction_by_num(after), get_direction_by_num(destination));
+	else kprintf("car: %d, moved %s -> %s, start: %s, after: %s, dest: %s", car_num, get_direction_by_num(before), get_direction_by_num(current), get_direction_by_num(start), get_direction_by_num(after), get_direction_by_num(destination));
 	kprintf("\n\n");
 	V(donesem);
 }
