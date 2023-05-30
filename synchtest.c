@@ -211,13 +211,47 @@ straight(int car_num, int start_num, int end_num)
 }
 
 static void
+right_fun(int car_num, int start_num, int end_num, int s1, struct semaphore *s1_sem)
+{
+	/* 우회전 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치 */
+	P(INTER); // 교차로 진입
+	P(s1_sem);
+	message_function(car_num, start_num, start_num, s1, end_num);
+	V(s1_sem);
+	message_function(car_num, start_num, s1, end_num, end_num);
+	V(INTER); // 교차로 진입
+}
+
+static void
+right(int car_num, int start_num, int end_num)
+{
+	/* 차량이 교차로에서 우회전함을 의미하는 함수 */
+	switch (start_num)
+	{
+	case 0:
+		right_fun(car_num, start_num, end_num, 4, NW);
+		break;
+	case 1:
+		right_fun(car_num, start_num, end_num, 5, NE);
+		break;
+	case 2:
+		right_fun(car_num, start_num, end_num, 6, SE);
+		break;
+	case 3:
+		right_fun(car_num, start_num, end_num, 7, SW);
+		break;
+	}
+}
+
+static void
 semtestthread(void *junk, unsigned long car_num)
 {
 	int start_num, end_num, i;
 	(void)junk;
 
-	start_num = random() % 4;
-	end_num = (start_num + 2) % 4;
+	start_num = end_num = random() % 4;
+	while (start_num == end_num && start_num == (end_num + 1) % 4)
+		end_num = random() % 4;
 	/*
 	 * Only one of these should print at a time.
 	 */
@@ -234,6 +268,11 @@ semtestthread(void *junk, unsigned long car_num)
 	{
 		message_count += 3;
 		straight(car_num, start_num, end_num);
+	}
+	else if ((start_num + 1) % 4 == end_num)
+	{
+		message_count += 2;
+		right(car_num, start_num, end_num);
 	}
 }
 
