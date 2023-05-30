@@ -110,7 +110,7 @@ inititems(void)
 	{
 		if (FIELD[i] == NULL)
 		{
-			FIELD[i] = sem_create(get_direction_by_num(i + 4, 1));
+			FIELD[i] = sem_create(get_direction_by_num(i + 4), 1);
 			if (FIELD[i] == NULL)
 				panic("synchtest: sem_create failed\n");
 		}
