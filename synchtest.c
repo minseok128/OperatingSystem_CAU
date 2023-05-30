@@ -165,18 +165,30 @@ print_state(int car, int start, int end, int before, int crr)
 static void
 move(int car, int start, int end, int type)
 {
-	int i;
+	// int i;
 
 	P(CAR_COUNT);
 	P(FIELD[info[start][0] - 4]);
 	print_state(car, start, end, start, info[start][0]);
-	for (i = 1; i <= type; i++)
+	if (type > 0)
 	{
-		P(FIELD[info[start][i] - 4]);
-		print_state(car, start, end, info[start][i - 1], info[start][i]);
-		V(FIELD[info[start][i - 1] - 4]);
+		P(FIELD[info[start][1] - 4]);
+		print_state(car, start, end, info[start][0], info[start][1]);
+		V(FIELD[info[start][0] - 4]);
 	}
-	print_state(car, start, end, info[start][i - 1], end);
+	if (type == 2)
+	{
+		P(FIELD[info[start][2] - 4]);
+		print_state(car, start, end, info[start][1], info[start][2]);
+		V(FIELD[info[start][1] - 4]);
+	}
+	// for (i = 1; i <= type; i++)
+	// {
+	// 	P(FIELD[info[start][i] - 4]);
+	// 	print_state(car, start, end, info[start][i - 1], info[start][i]);
+	// 	V(FIELD[info[start][i - 1] - 4]);
+	// }
+	print_state(car, start, end, info[start][type], end);
 	V(FIELD[info[start][type] - 4]);
 	V(CAR_COUNT);
 }
