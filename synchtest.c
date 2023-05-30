@@ -211,7 +211,7 @@ straight(int car_num, int start_num, int end_num)
 }
 
 static void
-semtestthread(void *junk, int car_num)
+semtestthread(void *junk, unsigned long car_num)
 {
 	int start_num, end_num, i;
 	(void)junk;
