@@ -36,7 +36,6 @@
 #include <clock.h>
 #include <thread.h>
 #include <synch.h>
-#include <test.h>
 
 #define NSEMLOOPS 63
 #define NLOCKLOOPS 120
@@ -176,7 +175,7 @@ move(int car, int start, int end, int type)
 		print_state(car, start, end, info[start][0], info[start][1]);
 		V(FIELD[info[start][0] - 4]);
 	}
-	if (type == 2)
+	if (type > 1)
 	{
 		P(FIELD[info[start][2] - 4]);
 		print_state(car, start, end, info[start][1], info[start][2]);
@@ -544,13 +543,13 @@ int cvtest2(int nargs, char **args)
 	P(exitsem);
 	P(exitsem);
 
-	sem_endroy(exitsem);
-	sem_endroy(gatesem);
+	sem_destroy(exitsem);
+	sem_destroy(gatesem);
 	exitsem = gatesem = NULL;
 	for (i = 0; i < NCVS; i++)
 	{
-		lock_endroy(testlocks[i]);
-		cv_endroy(testcvs[i]);
+		lock_destroy(testlocks[i]);
+		cv_destroy(testcvs[i]);
 		testlocks[i] = NULL;
 		testcvs[i] = NULL;
 	}
