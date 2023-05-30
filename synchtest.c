@@ -250,7 +250,7 @@ semtestthread(void *junk, unsigned long car_num)
 	(void)junk;
 
 	start_num = end_num = random() % 4;
-	while (start_num == end_num && start_num == (end_num + 3) % 4)
+	while (start_num == end_num || start_num == (end_num + 3) % 4)
 		end_num = random() % 4;
 	/*
 	 * Only one of these should print at a time.
