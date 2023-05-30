@@ -301,7 +301,7 @@ move(int car_num, int start_num, int end_num, int type)
 		V(FIELD[necessary_info[start_num][i] - 4]);
 	}
 	message_function(car_num, start_num, necessary_info[start_num][i], end_num, end_num);
-	V(FIELD[necessary_info[start_num][i] - 4]);
+	V(FIELD[necessary_info[start_num][type] - 4]);
 	V(INTER);
 }
 
