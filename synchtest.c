@@ -41,7 +41,7 @@
 #define NSEMLOOPS 63
 #define NLOCKLOOPS 120
 #define NCVLOOPS 5
-#define NTHREADS 8
+#define NTHREADS 4
 
 static volatile unsigned long testval1;
 static volatile unsigned long testval2;
@@ -175,7 +175,7 @@ message_function(int car_num, int start, int before, int current, int destinatio
 }
 
 static void
-gostraight_process(int car_num, int start_num, int end_num, int s1, int s2, struct semaphore *s1_sem, struct semaphore *s2_sem)
+straight_fun(int car_num, int start_num, int end_num, int s1, int s2, struct semaphore *s1_sem, struct semaphore *s2_sem)
 {
 	/* 직진 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치, s2_sem는 다음에 이동한 교차로의 위치 */
 	P(INTER); // 교차로 진입
@@ -190,22 +190,22 @@ gostraight_process(int car_num, int start_num, int end_num, int s1, int s2, stru
 }
 
 static void
-gostraight(int car_num, int start_num, int end_num)
+straight(int car_num, int start_num, int end_num)
 {
 	/* 차량이 교차로에서 직진함을 의미하는 함수 */
 	switch (start_num)
 	{
 	case 0:
-		gostraight_process(car_num, start_num, end_num, 4, 7, SE, SW);
+		straight_fun(car_num, start_num, end_num, 4, 7, SE, SW);
 		break;
 	case 1:
-		gostraight_process(car_num, start_num, end_num, 5, 4, NE, SE);
+		straight_fun(car_num, start_num, end_num, 5, 4, NE, SE);
 		break;
 	case 2:
-		gostraight_process(car_num, start_num, end_num, 6, 5, NW, NE);
+		straight_fun(car_num, start_num, end_num, 6, 5, NW, NE);
 		break;
 	case 3:
-		gostraight_process(car_num, start_num, end_num, 7, 6, SW, NW);
+		straight_fun(car_num, start_num, end_num, 7, 6, SW, NW);
 		break;
 	}
 }
@@ -233,7 +233,7 @@ semtestthread(void *junk, int car_num)
 	if ((start_num + 2) % 4 == end_num)
 	{
 		message_count += 3;
-		gostraight(car_num, start_num, end_num);
+		straight(car_num, start_num, end_num);
 	}
 }
 
