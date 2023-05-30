@@ -83,6 +83,18 @@ get_direction_by_num(int num)
 	return ("ERROR");
 }
 
+static char *
+get_turn_by_num(int start_num, int end_num)
+{
+	if ((start_num + 2) % 4 == end_num)
+		return ("go straight");
+	else if ((start_num + 3) % 4 == end_num)
+		return ("turn right");
+	else
+		return ("turn left");
+	return ("ERROR");
+}
+
 static void
 inititems(void)
 {
@@ -153,14 +165,7 @@ message_create(int car_num, int start_num, int end_num)
 	kprintf("Car %d: ", car_num);
 	for (i = 0; i < NSEMLOOPS; i++)
 		kprintf("%c", (int)car_num + 64);
-	kprintf("\ncar: %d, waiting in %s to %s | ", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num));
-
-	if ((start_num + 2) % 4 == end_num)
-		kprintf("go straight");
-	else if ((start_num + 3) % 4 == end_num)
-		kprintf("turn right");
-	else
-		kprintf("turn left");
+	kprintf("\ncar: %d, waiting in %s to %s | go %s", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num), get_turn_by_num(start_num, end_num));
 	kprintf("\n\n");
 	V(donesem);
 }
@@ -168,6 +173,13 @@ message_create(int car_num, int start_num, int end_num)
 static void
 message_function(int car_num, int start, int before, int current, int after, int destination)
 {
+	if (current == destination)
+	{
+		P(testsem);
+		kprintf("car# %d arri");
+		V(donesem);
+	}
+
 	/*메시지 출력*/
 	if (start == before)
 	{
