@@ -226,7 +226,7 @@ semtestthread(void *junk, unsigned long car_num)
 	kprintf("Car %d: ", (int)car_num);
 	for (i = 0; i < NSEMLOOPS; i++)
 		kprintf("%c", (int)car_num + 64);
-	kprintf("\ncar: %d, waiting in %s to %s | %s", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num), get_turn_by_num(start_num, end_num));
+	kprintf("\ncar: %d, waiting in %s to %s | %s", (int)car_num, get_direction_by_num(start_num), get_direction_by_num(end_num), get_turn_by_num(start_num, end_num));
 	kprintf("\n\n");
 	V(donesem);
 
