@@ -72,13 +72,13 @@ get_direction_by_num(int num)
 	case 3:
 		return ("S");
 	case 4:
-		return ("SE");
+		return ("NS");
 	case 5:
 		return ("NE");
 	case 6:
-		return ("NW");
+		return ("WE");
 	case 7:
-		return ("SW");
+		return ("WS");
 	}
 	return ("ERROR");
 }
