@@ -173,6 +173,8 @@ message_create(int car_num, int start_num, int end_num)
 static void
 message_function(int car_num, int start, int before, int current, int after, int destination)
 {
+	int i;
+
 	P(testsem);
 	kprintf("Car %d: ", car_num);
 	for (i = 0; i < NSEMLOOPS; i++)
