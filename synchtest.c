@@ -157,7 +157,7 @@ static void message_create(int car_num, int start_num, int end_num)
 		strcpy(str, "turn left");
 
 	P(testsem);
-	kprintf("car: %d, waiting in %c to %s\n", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num));
+	kprintf("car: %d, waiting in %s to %s\n", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num));
 	V(donesem);
 }
 
