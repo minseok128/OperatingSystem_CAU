@@ -20,7 +20,7 @@
  * ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY OR CONTRIBUTORS BE LIABLE
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS CAR_COUNTRUPTION)
  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -51,22 +51,18 @@ static struct lock *testlock;
 static struct cv *testcv;
 static struct semaphore *donesem;
 
-// static struct semaphore *NW;
-// static struct semaphore *NE;
-// static struct semaphore *SW;
-// static struct semaphore *SE;
-static struct semaphore *FIELD[4];
-static struct semaphore *INTER;
+static struct semaphore *FIELD[4]; // 0: NW, 1: NE, 2: SW, 3: SE
+static struct semaphore *CAR_COUNT;
 int message_count = 0;
 
-int necessary_info[4][3] = {
+int info[4][3] = {
 	{4, 7, 6},
 	{5, 4, 7},
 	{6, 5, 4},
 	{7, 6, 5}};
 
 static const char *
-get_direction_by_num(int num)
+get_dir(int num)
 {
 	switch (num)
 	{
@@ -91,11 +87,11 @@ get_direction_by_num(int num)
 }
 
 static const char *
-get_turn_by_num(int start_num, int end_num)
+get_turn(int start, int end)
 {
-	if ((start_num + 2) % 4 == end_num)
+	if ((start + 2) % 4 == end)
 		return ("going straight");
-	else if ((start_num + 3) % 4 == end_num)
+	else if ((start + 3) % 4 == end)
 		return ("going right");
 	else
 		return ("going left");
@@ -110,39 +106,15 @@ inititems(void)
 	{
 		if (FIELD[i] == NULL)
 		{
-			FIELD[i] = sem_create(get_direction_by_num(i + 4), 1);
+			FIELD[i] = sem_create(get_dir(i + 4), 1);
 			if (FIELD[i] == NULL)
 				panic("synchtest: sem_create failed\n");
 		}
 	}
-	// if (FIELD[0] == NULL)
-	// {
-	// 	FIELD[0] = sem_create("NW", 1);
-	// 	if (FIELD[0] == NULL)
-	// 		panic("synchtest: sem_create failed\n");
-	// }
-	// if (FIELD[1] == NULL)
-	// {
-	// 	FIELD[1] = sem_create("NE", 1);
-	// 	if (FIELD[1] == NULL)
-	// 		panic("synchtest: sem_create failed\n");
-	// }
-	// if (FIELD[2] == NULL)
-	// {
-	// 	FIELD[2] = sem_create("SW", 1);
-	// 	if (FIELD[2] == NULL)
-	// 		panic("synchtest: sem_create failed\n");
-	// }
-	// if (FIELD[3] == NULL)
-	// {
-	// 	FIELD[3] = sem_create("SE", 1);
-	// 	if (FIELD[3] == NULL)
-	// 		panic("synchtest: sem_create failed\n");
-	// }
-	if (INTER == NULL)
+	if (CAR_COUNT == NULL)
 	{
-		INTER = sem_create("INTER", 3);
-		if (INTER == NULL)
+		CAR_COUNT = sem_create("CAR_COUNT", 3);
+		if (CAR_COUNT == NULL)
 			panic("synchtest: sem_create failed\n");
 	}
 
@@ -173,193 +145,80 @@ inititems(void)
 }
 
 static void
-message_function(int car_num, int start, int before, int current, int destination)
+print_state(int car, int start, int dest, int before, int crr)
 {
 	int i;
 
 	P(testsem);
-	kprintf("Car %d: ", car_num);
+	kprintf("Car %d: ", car);
 	for (i = 0; i < NSEMLOOPS; i++)
-		kprintf("%c", (int)car_num + 64);
-	kprintf("\ncar# %d is comming from %s %s\n", car_num, get_direction_by_num(start), get_turn_by_num(start, destination));
+		kprintf("%c", (int)car + 64);
+	kprintf("\ncar# %d is comming from %s %s\n", car, get_dir(start), get_turn(start, dest));
 
-	kprintf("car = %d, in = %s, out = %s : %s->%s", car_num, get_direction_by_num(start), get_direction_by_num(destination), get_direction_by_num(before), get_direction_by_num(current));
-	if (current == destination)
+	kprintf("car = %d, in = %s, out = %s : %s->%s", car, get_dir(start), get_dir(dest), get_dir(before), get_dir(crr));
+	if (crr == dest)
 		kprintf(" done");
 	kprintf("\n\n\n");
 	V(donesem);
 }
 
-// static void
-// straight_fun(int car_num, int start_num, int end_num, int s1, int s2, struct semaphore *s1_sem, struct semaphore *s2_sem)
-// {
-// 	/* 직진 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치, s2_sem는 다음에 이동한 교차로의 위치 */
-// 	P(INTER); // 교차로 진입
-
-// 	P(s1_sem);
-// 	message_function(car_num, start_num, start_num, s1, end_num);
-
-// 	P(s2_sem);
-// 	message_function(car_num, start_num, s1, s2, end_num);
-// 	V(s1_sem);
-
-// 	message_function(car_num, start_num, s2, end_num, end_num);
-// 	V(s2_sem);
-
-// 	V(INTER); // 교차로 진입
-// }
-
-// static void leftturnprocess(int car_num, const char *start, struct semaphore *step1, struct semaphore *step2, struct semaphore *step3, const char *dest)
-// {
-// 	/* 좌회전 과정을 나타내는 함수. 과정은 gostraight과 유사 */
-// 	P(INTER); // 교차로 진입
-
-// 	P(step1);
-// 	message_function(car_num, start, start, step1->sem_name, step2->sem_name, dest);
-
-// 	P(step2);
-// 	message_function(car_num, start, step1->sem_name, step2->sem_name, step3->sem_name, dest);
-
-// 	P(step3);
-
-// 	V(step1);
-// 	message_function(car_num, start, step2->sem_name, step3->sem_name, dest, dest);
-// 	V(step2);
-// 	message_function(car_num, start, step3->sem_name, dest, dest, dest);
-// 	V(step3);
-// 	V(INTER); // 교차로 진입
-// }
-// static void
-// right_fun(int car_num, int start_num, int end_num, int s1, struct semaphore *s1_sem)
-// {
-// 	/* 우회전 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치 */
-// 	P(INTER); // 교차로 진입
-// 	P(s1_sem);
-// 	message_function(car_num, start_num, start_num, s1, end_num);
-// 	V(s1_sem);
-// 	message_function(car_num, start_num, s1, end_num, end_num);
-// 	V(INTER); // 교차로 진입
-// }
-
-// static void
-// straight(int car_num, int start_num, int end_num)
-// {
-// 	/* 차량이 교차로에서 직진함을 의미하는 함수 */
-// 	switch (start_num)
-// 	{
-// 	case 0:
-// 		straight_fun(car_num, start_num, end_num, 4, 7, SE, SW);
-// 		break;
-// 	case 1:
-// 		straight_fun(car_num, start_num, end_num, 5, 4, NE, SE);
-// 		break;
-// 	case 2:
-// 		straight_fun(car_num, start_num, end_num, 6, 5, NW, NE);
-// 		break;
-// 	case 3:
-// 		straight_fun(car_num, start_num, end_num, 7, 6, SW, NW);
-// 		break;
-// 	}
-// }
-
-// static void
-// right(int car_num, int start_num, int end_num)
-// {
-// 	/* 차량이 교차로에서 우회전함을 의미하는 함수 */
-// 	switch (start_num)
-// 	{
-// 	case 0:
-// 		right_fun(car_num, start_num, end_num, 4, NW);
-// 		break;
-// 	case 1:
-// 		right_fun(car_num, start_num, end_num, 5, NE);
-// 		break;
-// 	case 2:
-// 		right_fun(car_num, start_num, end_num, 6, SE);
-// 		break;
-// 	case 3:
-// 		right_fun(car_num, start_num, end_num, 7, SW);
-// 		break;
-// 	}
-// }
-
 static void
-move(int car_num, int start_num, int end_num, int type)
+move(int car, int start, int end, int type)
 {
 	int i = 0;
-	P(INTER);
 
-	P(FIELD[necessary_info[start_num][i] - 4]);
-	message_function(car_num, start_num, start_num, necessary_info[start_num][i], end_num);
+	P(CAR_COUNT);
+	P(FIELD[info[start][i] - 4]);
+	print_state(car, start, end, start, info[start][i]);
 	for (i = 1; i <= type; i++)
 	{
-		P(FIELD[necessary_info[start_num][i] - 4]);
-		message_function(car_num, start_num, necessary_info[start_num][i - 1], necessary_info[start_num][i], end_num);
-		V(FIELD[necessary_info[start_num][i - 1] - 4]);
+		P(FIELD[info[start][i] - 4]);
+		print_state(car, start, end, info[start][i - 1], info[start][i]);
+		V(FIELD[info[start][i - 1] - 4]);
 	}
-	V(FIELD[necessary_info[start_num][type] - 4]);
-	message_function(car_num, start_num, necessary_info[start_num][type - 1], end_num, end_num);
-
-	V(INTER);
-
-	// int i;
-
-	// P(INTER);
-	// for (i = 0; i < type + 1; i++)
-	// {
-	// 	P(FIELD[necessary_info[start_num][i] - 4]);
-	// }
-
-	// i = 0;
-	// message_function(car_num, start_num, start_num, necessary_info[start_num][i], end_num);
-	// for (i = 1; i < type; i++)
-	// {
-	// 	message_function(car_num, start_num, necessary_info[start_num][i - 1], necessary_info[start_num][i], end_num);
-	// 	V(FIELD[necessary_info[start_num][i - 1] - 4]);
-	// }
-	// message_function(car_num, start_num, necessary_info[start_num][i - 1], end_num, end_num);
-	// V(FIELD[necessary_info[start_num][type] - 4]);
-	// V(INTER);
+	V(FIELD[info[start][type] - 4]);
+	print_state(car, start, end, info[start][type - 1], end);
+	V(CAR_COUNT);
 }
 
 static void
-semtestthread(void *junk, unsigned long car_num)
+semtestthread(void *junk, unsigned long car)
 {
-	int start_num, end_num, i;
+	int start, end, i;
 	(void)junk;
 
-	start_num = end_num = random() % 4;
-	while (start_num == end_num)
-		end_num = random() % 4;
+	start = end = random() % 4;
+	while (start == end)
+		end = random() % 4;
 	/*
 	 * Only one of these should print at a time.
 	 */
 
 	P(testsem);
-	kprintf("Car %d: ", (int)car_num);
+	kprintf("Car %d: ", (int)car);
 	for (i = 0; i < NSEMLOOPS; i++)
-		kprintf("%c", (int)car_num + 64);
-	kprintf("\ncar: %d, waiting in %s to %s | %s", (int)car_num, get_direction_by_num(start_num), get_direction_by_num(end_num), get_turn_by_num(start_num, end_num));
+		kprintf("%c", (int)car + 64);
+	kprintf("\ncar: %d, waiting in %s to %s | %s", (int)car, get_dir(start), get_dir(end), get_turn(start, end));
 	kprintf("\n\n");
 	V(donesem);
 
-	if ((start_num + 2) % 4 == end_num)
+	if ((start + 2) % 4 == end)
 	{
+		// 직진
 		message_count += 3;
-		move(car_num, start_num, end_num, 1);
-		// straight(car_num, start_num, end_num);
+		move(car, start, end, 1);
 	}
-	else if ((start_num + 3) % 4 == end_num)
+	else if ((start + 3) % 4 == end)
 	{
+		// 우회전
 		message_count += 2;
-		move(car_num, start_num, end_num, 0);
-		// right(car_num, start_num, end_num);
+		move(car, start, end, 0);
 	}
 	else
 	{
+		// 좌회전
 		message_count += 4;
-		move(car_num, start_num, end_num, 2);
-		// left(car_num, start_num, end_num);
+		move(car, start, end, 2);
 	}
 }
 
@@ -396,7 +255,7 @@ int semtest(int nargs, char **args)
 	}
 	for (i = 0; i < message_count; i++)
 	{
-		// message_function에서의 testsem, donesem 회수
+		// print_state에서의 testsem, donesem 회수
 		V(testsem);
 		P(donesem);
 	}
