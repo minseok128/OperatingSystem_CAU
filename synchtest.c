@@ -83,7 +83,7 @@ get_direction_by_num(int num)
 	return ("ERROR");
 }
 
-static char *
+static const char *
 get_turn_by_num(int start_num, int end_num)
 {
 	if ((start_num + 2) % 4 == end_num)
