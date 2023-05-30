@@ -295,7 +295,7 @@ move(int car_num, int start_num, int end_num, int type)
 
 	i = 0;
 	message_function(car_num, start_num, start_num, necessary_info[start_num][i], end_num);
-	for (i = 0; i < type + 1; i++)
+	for (i = 0; i < type; i++)
 	{
 		message_function(car_num, start_num, necessary_info[start_num][i], necessary_info[start_num][i + 1], end_num);
 		V(FIELD[necessary_info[start_num][i - 1] - 4]);
