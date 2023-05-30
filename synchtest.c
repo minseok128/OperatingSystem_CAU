@@ -58,6 +58,30 @@ static struct semaphore *SE;
 static struct semaphore *INTER;
 int message_count;
 
+static char *
+get_direction_by_num(int num)
+{
+	switch (num)
+	{
+	case 0:
+		return ("N");
+	case 1:
+		return ("E");
+	case 2:
+		return ("W");
+	case 3:
+		return ("S");
+	case 4:
+		return ("SE");
+	case 5:
+		return ("NE");
+	case 6:
+		return ("NW");
+	case 7:
+		return ("SW");
+	}
+}
+
 static void
 inititems(void)
 {
@@ -127,7 +151,7 @@ message_function(int car_num, int start, int before, int current, int after, int
 	{
 		/* 교차로에 방금 진입했을 때 */
 		P(testsem);
-		kprintf("car: %d, enter %s -> %s\n", car_num, before, current);
+		kprintf("car: %d, enter %s -> %s\n", car_num, get_direction_by_num(before), get_direction_by_num(current));
 		V(donesem);
 	}
 	else if (current == destination)
@@ -141,7 +165,7 @@ message_function(int car_num, int start, int before, int current, int after, int
 	{
 		/* 교차로내에서 움직일 때 */
 		P(testsem);
-		kprintf("car: %d, moved %s -> %s, start: %s, after: %s, dest: %s\n", car_num, before, current, start, after, destination);
+		kprintf("car: %d, moved %s -> %s, start: %s, after: %s, dest: %s\n", car_num, get_direction_by_num(before), get_direction_by_num(current), get_direction_by_num(start), get_direction_by_num(after), get_direction_by_num(destination));
 		V(donesem);
 	}
 }
