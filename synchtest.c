@@ -120,7 +120,7 @@ inititems(void)
 }
 
 static void
-message_function(int car_num, int start_num, int before, int current, int after, int destination)
+message_function(int car_num, int start, int before, int current, int after, int destination)
 {
 	/*메시지 출력*/
 	if (start == before)
@@ -185,7 +185,7 @@ gostraight(int car_num, int start_num, int end_num)
 static void
 semtestthread(void *junk, unsigned long num)
 {
-	int i, start_num, end_num;
+	int start_num, end_num;
 	(void)junk;
 
 	start_num = random() % 4;
@@ -197,7 +197,7 @@ semtestthread(void *junk, unsigned long num)
 	if ((start_num + 2) % 4 == end_num)
 	{
 		message_count += 3;
-		gostraight(num, start);
+		gostraight(num, start_num, end_num);
 	}
 }
 
@@ -232,7 +232,7 @@ int semtest(int nargs, char **args)
 		V(testsem);
 		P(donesem);
 	}
-	for (i = 0; i < numcallmessage; i++)
+	for (i = 0; i < message_count; i++)
 	{
 		// message_function에서의 testsem, donesem 회수
 		V(testsem);
