@@ -144,6 +144,23 @@ inititems(void)
 	}
 }
 
+static void message_create(int car_num, char start_num, int end_num)
+{
+	/*스레드가 생성되었을 때 메시지 출력*/
+	char str[15];
+
+	if ((start_num + 2) % 4 == end_num)
+		strcpy(str, "go straight");
+	else if ((start_num + 3) % 4 == end_num)
+		strcpy(str, "turn right");
+	else
+		strcpy(str, "turn left");
+
+	P(testsem);
+	kprintf("car: %d, waiting in %c to %s\n", car_num, start, str);
+	V(donesem);
+}
+
 static void
 message_function(int car_num, int start, int before, int current, int after, int destination)
 {
@@ -218,6 +235,8 @@ semtestthread(void *junk, unsigned long num)
 	/*
 	 * Only one of these should print at a time.
 	 */
+
+	message_create(num, start_num, end_num);
 
 	if ((start_num + 2) % 4 == end_num)
 	{
