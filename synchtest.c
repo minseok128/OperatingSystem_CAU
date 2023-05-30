@@ -51,283 +51,178 @@ static struct lock *testlock;
 static struct cv *testcv;
 static struct semaphore *donesem;
 
-static struct semaphore *NW;	// NW 방향 추가
-static struct semaphore *NE;	// NE 방향 추가
-static struct semaphore *SW;	// SW 방향 추가
-static struct semaphore *SE;	// SE 방향 추가
-static struct semaphore *INTER; // 교차로에 들어올 수 있는 차의 개수
-int numcallmessage = 0;			// message_function 호출 횟수
+static struct semaphore *NW;
+static struct semaphore *NE;
+static struct semaphore *SW;
+static struct semaphore *SE;
+static struct semaphore *INTER;
+int message_count = 0;
 
-static void inititems(void)
+static const char *
+get_direction_by_num(int num)
 {
-	if (testsem == NULL)
+	switch (num)
 	{
-		testsem = sem_create("testsem", 2);
-		if (testsem == NULL)
-		{
-			panic("synchtest: sem_create failed\n");
-		}
+	case 0:
+		return ("N");
+	case 1:
+		return ("E");
+	case 2:
+		return ("W");
+	case 3:
+		return ("S");
+	case 4:
+		return ("SE");
+	case 5:
+		return ("NE");
+	case 6:
+		return ("NW");
+	case 7:
+		return ("SW");
 	}
-	if (testlock == NULL)
-	{
-		testlock = lock_create("testlock");
-		if (testlock == NULL)
-		{
-			panic("synchtest: lock_create failed\n");
-		}
-	}
-	if (testcv == NULL)
-	{
-		testcv = cv_create("testlock");
-		if (testcv == NULL)
-		{
-			panic("synchtest: cv_create failed\n");
-		}
-	}
-	if (donesem == NULL)
-	{
-		donesem = sem_create("donesem", 0);
-		if (donesem == NULL)
-		{
-			panic("synchtest: sem_create failed\n");
-		}
-	}
+	return ("ERROR");
+}
 
-	// 추가한 부분(NW, NE, SW, SE, INTER 세마포어 생성)
+static void
+inititems(void)
+{
+	// 5개의 새운 세마포어 초기화
 	if (NW == NULL)
 	{
 		NW = sem_create("NW", 1);
 		if (NW == NULL)
-		{
 			panic("synchtest: sem_create failed\n");
-		}
 	}
 	if (NE == NULL)
 	{
 		NE = sem_create("NE", 1);
 		if (NE == NULL)
-		{
 			panic("synchtest: sem_create failed\n");
-		}
 	}
 	if (SW == NULL)
 	{
 		SW = sem_create("SW", 1);
 		if (SW == NULL)
-		{
 			panic("synchtest: sem_create failed\n");
-		}
 	}
 	if (SE == NULL)
 	{
 		SE = sem_create("SE", 1);
 		if (SE == NULL)
-		{
 			panic("synchtest: sem_create failed\n");
-		}
 	}
 	if (INTER == NULL)
 	{
 		INTER = sem_create("INTER", 3);
 		if (INTER == NULL)
-		{
 			panic("synchtest: sem_create failed\n");
-		}
+	}
+
+	if (testsem == NULL)
+	{
+		testsem = sem_create("testsem", 2);
+		if (testsem == NULL)
+			panic("synchtest: sem_create failed\n");
+	}
+	if (testlock == NULL)
+	{
+		testlock = lock_create("testlock");
+		if (testlock == NULL)
+			panic("synchtest: lock_create failed\n");
+	}
+	if (testcv == NULL)
+	{
+		testcv = cv_create("testlock");
+		if (testcv == NULL)
+			panic("synchtest: cv_create failed\n");
+	}
+	if (donesem == NULL)
+	{
+		donesem = sem_create("donesem", 0);
+		if (donesem == NULL)
+			panic("synchtest: sem_create failed\n");
 	}
 }
-static void message_create(int car_num, char start, int turnnum)
-{
-	/*스레드가 생성되었을 때 메시지 출력*/
-	char str[15];
 
-	if (turnnum == 0)
-		strcpy(str, "go straight");
-	else if (turnnum == 1)
-		strcpy(str, "turn right");
-	else if (turnnum == 2)
-		strcpy(str, "turn left");
-	else
-		strcpy(str, "error");
-
-	P(testsem);
-	kprintf("car: %d, waiting in %c to %s\n", car_num, start, str);
-	V(donesem);
-}
-static void message_function(int car_num, const char *start, const char *before, const char *current, const char *after, const char *destination)
+static void
+message_function(int car_num, int start, int before, int current, int after, int destination)
 {
 	/*메시지 출력*/
-	if (strcmp(start, before) == 0)
+	if (start == before)
 	{
 		/* 교차로에 방금 진입했을 때 */
 		P(testsem);
-		kprintf("car: %d, enter %s -> %s\n", car_num, before, current);
+		kprintf("car: %d, enter %s -> %s\n", car_num, get_direction_by_num(before), get_direction_by_num(current));
 		V(donesem);
 	}
-	else if (strcmp(current, destination) == 0)
+	else if (current == destination)
 	{
 		/* 목적지에 도착하여 교차로를 빠져나올 때 */
 		P(testsem);
-		kprintf("car: %d, arrive %s, start: %s\n", car_num, destination, start);
+		kprintf("car: %d, arrive %s, start: %s\n", car_num, get_direction_by_num(destination), get_direction_by_num(start));
 		V(donesem);
 	}
 	else
 	{
 		/* 교차로내에서 움직일 때 */
 		P(testsem);
-		kprintf("car: %d, moved %s -> %s, start: %s, after: %s, dest: %s\n", car_num, before, current, start, after, destination);
+		kprintf("car: %d, moved %s -> %s, start: %s, after: %s, dest: %s\n", car_num, get_direction_by_num(before), get_direction_by_num(current), get_direction_by_num(start), get_direction_by_num(after), get_direction_by_num(destination));
 		V(donesem);
 	}
 }
-static void gostraightprocess(int car_num, const char *start, struct semaphore *step1, struct semaphore *step2, const char *dest)
+
+static void
+gostraight_process(int car_num, int start_num, int end_num, int s1, int s2, struct semaphore *s1_sem, struct semaphore *s2_sem)
 {
-	/* 직진 과정을 나타내는 함수. step1은 맨 처음 교차로에 진입했을 때의 교차로 위치, step2는 다음에 이동한 교차로의 위치 */
+	/* 직진 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치, s2_sem는 다음에 이동한 교차로의 위치 */
 	P(INTER); // 교차로 진입
-	P(step1);
-	message_function(car_num, start, start, step1->sem_name, step2->sem_name, dest);
-	P(step2);
-	message_function(car_num, start, step1->sem_name, step2->sem_name, dest, dest);
-	V(step1);
-	message_function(car_num, start, step2->sem_name, dest, dest, dest);
-	V(step2);
+	P(s1_sem);
+	message_function(car_num, start_num, start_num, s1, s2, end_num);
+	P(s2_sem);
+	message_function(car_num, start_num, s1, s2, end_num, end_num);
+	V(s1_sem);
+	message_function(car_num, start_num, s2, end_num, end_num, end_num);
+	V(s2_sem);
 	V(INTER); // 교차로 진입
 }
-static void gostraight(int car_num, char start)
+
+static void
+gostraight(int car_num, int start_num, int end_num)
 {
 	/* 차량이 교차로에서 직진함을 의미하는 함수 */
-	switch (start)
+	switch (start_num)
 	{
-	case 'N':
-		gostraightprocess(car_num, "N", NW, SW, "S");
+	case 0:
+		gostraight_process(car_num, start_num, end_num, 4, 7, SE, SW);
 		break;
-	case 'E':
-		gostraightprocess(car_num, "E", NE, NW, "W");
+	case 1:
+		gostraight_process(car_num, start_num, end_num, 5, 4, NE, SE);
 		break;
-	case 'S':
-		gostraightprocess(car_num, "S", SE, NE, "N");
+	case 2:
+		gostraight_process(car_num, start_num, end_num, 6, 5, NW, NE);
 		break;
-	case 'W':
-		gostraightprocess(car_num, "W", SW, SE, "E");
-		break;
-	default:
-		P(testsem);
-		kprintf("잘못된 입력입니다.\n");
-		V(donesem);
+	case 3:
+		gostraight_process(car_num, start_num, end_num, 7, 6, SW, NW);
 		break;
 	}
 }
 
-static void leftturnprocess(int car_num, const char *start, struct semaphore *step1, struct semaphore *step2, struct semaphore *step3, const char *dest)
+static void
+semtestthread(void *junk, unsigned long num)
 {
-	/* 좌회전 과정을 나타내는 함수. 과정은 gostraight과 유사 */
-	P(INTER); // 교차로 진입
-	P(step1);
-	message_function(car_num, start, start, step1->sem_name, step2->sem_name, dest);
-	P(step2);
-	message_function(car_num, start, step1->sem_name, step2->sem_name, step3->sem_name, dest);
-	V(step1);
-	P(step3);
-	message_function(car_num, start, step2->sem_name, step3->sem_name, dest, dest);
-	V(step2);
-	message_function(car_num, start, step3->sem_name, dest, dest, dest);
-	V(step3);
-	V(INTER); // 교차로 진입
-}
-static void leftturn(int car_num, char start)
-{
-	/* 차량이 교차로에서 좌회전함을 의미하는 함수 */
-	switch (start)
-	{
-	case 'N':
-		leftturnprocess(car_num, "N", NW, SW, SE, "E");
-		break;
-	case 'E':
-		leftturnprocess(car_num, "E", NE, NW, SW, "S");
-		break;
-	case 'S':
-		leftturnprocess(car_num, "S", SE, NE, NW, "W");
-		break;
-	case 'W':
-		leftturnprocess(car_num, "W", SW, SE, NE, "N");
-		break;
-	default:
-		P(testsem);
-		kprintf("잘못된 입력입니다.\n");
-		V(donesem);
-		break;
-	}
-}
-static void rightturnprocess(int car_num, const char *start, struct semaphore *step, const char *dest)
-{
-	/* 우회전 과정을 나타내는 함수 */
-	P(INTER); // 교차로 진입
-	P(step);
-	message_function(car_num, start, start, step->sem_name, dest, dest);
-	message_function(car_num, start, step->sem_name, dest, dest, dest);
-	V(step);
-	V(INTER); // 교차로 진입
-}
-static void rightturn(int car_num, char start)
-{
-	/* 차량이 교차로에서 우회전함을 의미하는 함수 */
-	switch (start)
-	{
-	case 'N':
-		rightturnprocess(car_num, "N", NW, "W");
-		break;
-	case 'E':
-		rightturnprocess(car_num, "E", NE, "N");
-		break;
-	case 'S':
-		rightturnprocess(car_num, "S", SE, "E");
-		break;
-	case 'W':
-		rightturnprocess(car_num, "W", SW, "S");
-		break;
-	default:
-		P(testsem);
-		kprintf("잘못된 입력입니다.\n");
-		V(donesem);
-		break;
-	}
-}
-
-static void semtestthread(void *junk, unsigned long num)
-{
+	int start_num, end_num;
 	(void)junk;
+
+	start_num = random() % 4;
+	end_num = (start_num + 2) % 4;
 	/*
 	 * Only one of these should print at a time.
 	 */
-	int startnum = random() % 4; // 시작위치 생성
-	int turnnum = random() % 3;	 // 직진, 우회전, 좌회전
-	char start;					 // 시작위치
 
-	/* 시작 위치 */
-	if (startnum == 0)
-		start = 'N';
-	else if (startnum == 1)
-		start = 'E';
-	else if (startnum == 2)
-		start = 'S';
-	else
-		start = 'W';
-
-	message_create(num, start, turnnum); // 스레드 생성과 교차로의 차량 대수는 별개이므로 여기에서 생성 메시지 호출
-
-	/* 직진, 우회전, 좌회전 */
-	if (turnnum == 0)
+	if ((start_num + 2) % 4 == end_num)
 	{
-		numcallmessage += 3; // 직진에서 message_function 호출 횟수 = 3
-		gostraight(num, start);
-	}
-	else if (turnnum == 1)
-	{
-		numcallmessage += 2; // 우회전에서 message_function 호출 횟수 = 2
-		rightturn(num, start);
-	}
-	else
-	{
-		numcallmessage += 4; // 좌회전에서 message_function 호출 횟수 = 4
-		leftturn(num, start);
+		message_count += 3;
+		gostraight(num, start_num, end_num);
 	}
 }
 
@@ -340,6 +235,7 @@ int semtest(int nargs, char **args)
 
 	inititems();
 	kprintf("Starting semaphore test...\n");
+	kprintf("20203361 Chang Minseok\n");
 	kprintf("If this hangs, it's broken: ");
 	P(testsem);
 	P(testsem);
@@ -361,7 +257,7 @@ int semtest(int nargs, char **args)
 		V(testsem);
 		P(donesem);
 	}
-	for (i = 0; i < numcallmessage; i++)
+	for (i = 0; i < message_count; i++)
 	{
 		// message_function에서의 testsem, donesem 회수
 		V(testsem);
@@ -373,7 +269,6 @@ int semtest(int nargs, char **args)
 	V(testsem);
 
 	kprintf("Semaphore test done.\n");
-	kprintf("ver 4.1\n");
 	return 0;
 }
 
