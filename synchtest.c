@@ -157,20 +157,6 @@ inititems(void)
 }
 
 static void
-message_create(int car_num, int start_num, int end_num)
-{
-	int i;
-
-	P(testsem);
-	kprintf("Car %d: ", car_num);
-	for (i = 0; i < NSEMLOOPS; i++)
-		kprintf("%c", (int)car_num + 64);
-	kprintf("\ncar: %d, waiting in %s to %s | %s", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num), get_turn_by_num(start_num, end_num));
-	kprintf("\n\n");
-	V(donesem);
-}
-
-static void
 message_function(int car_num, int start, int before, int current, int destination)
 {
 	int i;
@@ -227,7 +213,7 @@ gostraight(int car_num, int start_num, int end_num)
 static void
 semtestthread(void *junk, unsigned long num)
 {
-	int start_num, end_num;
+	int start_num, end_num, i;
 	(void)junk;
 
 	start_num = random() % 4;
@@ -236,7 +222,13 @@ semtestthread(void *junk, unsigned long num)
 	 * Only one of these should print at a time.
 	 */
 
-	message_create(num, start_num, end_num);
+	P(testsem);
+	kprintf("Car %d: ", car_num);
+	for (i = 0; i < NSEMLOOPS; i++)
+		kprintf("%c", (int)car_num + 64);
+	kprintf("\ncar: %d, waiting in %s to %s | %s", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num), get_turn_by_num(start_num, end_num));
+	kprintf("\n\n");
+	V(donesem);
 
 	if ((start_num + 2) % 4 == end_num)
 	{
