@@ -174,7 +174,7 @@ static void
 message_function(int car_num, int start, int before, int current, int after, int destination)
 {
 	P(testsem);
-	kprintf("car# %d is comming from %s going %s", get_direction_by_num(start), get_turn_by_num(start, destination));
+	kprintf("car# %d is comming from %s going %s", car_num, get_direction_by_num(start), get_turn_by_num(start, destination));
 
 	if (current == destination)
 		kprintf("car: %d, arrive %s, start: %s\n", car_num, get_direction_by_num(destination), get_direction_by_num(start));
