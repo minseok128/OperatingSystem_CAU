@@ -171,7 +171,7 @@ message_create(int car_num, int start_num, int end_num)
 }
 
 static void
-message_function(int car_num, int start, int before, int current, int after, int destination)
+message_function(int car_num, int start, int before, int current, int destination)
 {
 	int i;
 
@@ -194,11 +194,11 @@ gostraight_process(int car_num, int start_num, int end_num, int s1, int s2, stru
 	/* 직진 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치, s2_sem는 다음에 이동한 교차로의 위치 */
 	P(INTER); // 교차로 진입
 	P(s1_sem);
-	message_function(car_num, start_num, start_num, s1, s2, end_num);
+	message_function(car_num, start_num, start_num, s1, end_num);
 	P(s2_sem);
-	message_function(car_num, start_num, s1, s2, end_num, end_num);
+	message_function(car_num, start_num, s1, s2, end_num);
 	V(s1_sem);
-	message_function(car_num, start_num, s2, end_num, end_num, end_num);
+	message_function(car_num, start_num, s2, end_num, end_num);
 	V(s2_sem);
 	V(INTER); // 교차로 진입
 }
