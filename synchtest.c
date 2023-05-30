@@ -150,9 +150,10 @@ message_create(int car_num, int start_num, int end_num)
 	int i;
 
 	P(testsem);
+	kprintf("Car# %d: ", car_num);
 	for (i = 0; i < NSEMLOOPS; i++)
 		kprintf("%c", (int)car_num + 64);
-	kprintf("car: %d, waiting in %s to %s | ", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num));
+	kprintf("\ncar: %d, waiting in %s to %s | ", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num));
 
 	if ((start_num + 2) % 4 == end_num)
 		kprintf("go straight\n");
