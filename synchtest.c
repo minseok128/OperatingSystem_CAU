@@ -51,9 +51,57 @@ static struct lock *testlock;
 static struct cv *testcv;
 static struct semaphore *donesem;
 
+static struct semaphore *NW;
+static struct semaphore *NE;
+static struct semaphore *SW;
+static struct semaphore *SE;
+static struct semaphore *INTER;
+
 static void
 inititems(void)
 {
+	// 5개의 새운 세마포어 초기화
+	if (NW == NULL)
+	{
+		NW = sem_create("NW", 1);
+		if (NW == NULL)
+		{
+			panic("synchtest: sem_create failed\n");
+		}
+	}
+	if (NE == NULL)
+	{
+		NE = sem_create("NE", 1);
+		if (NE == NULL)
+		{
+			panic("synchtest: sem_create failed\n");
+		}
+	}
+	if (SW == NULL)
+	{
+		SW = sem_create("SW", 1);
+		if (SW == NULL)
+		{
+			panic("synchtest: sem_create failed\n");
+		}
+	}
+	if (SE == NULL)
+	{
+		SE = sem_create("SE", 1);
+		if (SE == NULL)
+		{
+			panic("synchtest: sem_create failed\n");
+		}
+	}
+	if (INTER == NULL)
+	{
+		INTER = sem_create("INTER", 1);
+		if (INTER == NULL)
+		{
+			panic("synchtest: sem_create failed\n");
+		}
+	}
+
 	if (testsem == NULL)
 	{
 		testsem = sem_create("testsem", 2);
