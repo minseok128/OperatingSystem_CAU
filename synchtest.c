@@ -113,7 +113,7 @@ inititems(void)
 	}
 	if (INTER == NULL)
 	{
-		INTER = sem_create("INTER", 1);
+		INTER = sem_create("INTER", 3);
 		if (INTER == NULL)
 			panic("synchtest: sem_create failed\n");
 	}
