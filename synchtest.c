@@ -144,19 +144,20 @@ inititems(void)
 	}
 }
 
-static void message_create(int car_num, int start_num, int end_num)
+static void
+message_create(int car_num, int start_num, int end_num)
 {
 	/*스레드가 생성되었을 때 메시지 출력*/
 	char str[15];
 
-	if ((start_num + 2) % 4 == end_num)
-		strcpy(str, "go straight");
-	else if ((start_num + 3) % 4 == end_num)
-		strcpy(str, "turn right");
-	else
-		strcpy(str, "turn left");
-
 	P(testsem);
+	if ((start_num + 2) % 4 == end_num)
+		kprintf("go straight");
+	else if ((start_num + 3) % 4 == end_num)
+		kprintf("turn right");
+	else
+		kprintf("turn left");
+
 	kprintf("car: %d, waiting in %s to %s\n", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num));
 	V(donesem);
 }
