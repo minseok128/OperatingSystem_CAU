@@ -80,6 +80,7 @@ get_direction_by_num(int num)
 	case 7:
 		return ("SW");
 	}
+	return ("ERROR");
 }
 
 static void
