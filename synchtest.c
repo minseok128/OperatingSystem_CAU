@@ -181,77 +181,98 @@ message_function(int car_num, int start, int before, int current, int destinatio
 	V(donesem);
 }
 
-static void
-straight_fun(int car_num, int start_num, int end_num, int s1, int s2, struct semaphore *s1_sem, struct semaphore *s2_sem)
-{
-	/* 직진 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치, s2_sem는 다음에 이동한 교차로의 위치 */
-	P(INTER); // 교차로 진입
+// static void
+// straight_fun(int car_num, int start_num, int end_num, int s1, int s2, struct semaphore *s1_sem, struct semaphore *s2_sem)
+// {
+// 	/* 직진 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치, s2_sem는 다음에 이동한 교차로의 위치 */
+// 	P(INTER); // 교차로 진입
 
-	P(s1_sem);
-	message_function(car_num, start_num, start_num, s1, end_num);
+// 	P(s1_sem);
+// 	message_function(car_num, start_num, start_num, s1, end_num);
 
-	P(s2_sem);
-	message_function(car_num, start_num, s1, s2, end_num);
-	V(s1_sem);
+// 	P(s2_sem);
+// 	message_function(car_num, start_num, s1, s2, end_num);
+// 	V(s1_sem);
 
-	message_function(car_num, start_num, s2, end_num, end_num);
-	V(s2_sem);
+// 	message_function(car_num, start_num, s2, end_num, end_num);
+// 	V(s2_sem);
 
-	V(INTER); // 교차로 진입
-}
+// 	V(INTER); // 교차로 진입
+// }
 
-static void leftturnprocess(int car_num, const char *start, struct semaphore *step1, struct semaphore *step2, struct semaphore *step3, const char *dest)
-{
-	/* 좌회전 과정을 나타내는 함수. 과정은 gostraight과 유사 */
-	P(INTER); // 교차로 진입
+// static void leftturnprocess(int car_num, const char *start, struct semaphore *step1, struct semaphore *step2, struct semaphore *step3, const char *dest)
+// {
+// 	/* 좌회전 과정을 나타내는 함수. 과정은 gostraight과 유사 */
+// 	P(INTER); // 교차로 진입
 
-	P(step1);
-	message_function(car_num, start, start, step1->sem_name, step2->sem_name, dest);
+// 	P(step1);
+// 	message_function(car_num, start, start, step1->sem_name, step2->sem_name, dest);
 
-	P(step2);
-	message_function(car_num, start, step1->sem_name, step2->sem_name, step3->sem_name, dest);
+// 	P(step2);
+// 	message_function(car_num, start, step1->sem_name, step2->sem_name, step3->sem_name, dest);
 
-	P(step3);
+// 	P(step3);
 
-	V(step1);
-	message_function(car_num, start, step2->sem_name, step3->sem_name, dest, dest);
-	V(step2);
-	message_function(car_num, start, step3->sem_name, dest, dest, dest);
-	V(step3);
-	V(INTER); // 교차로 진입
-}
-static void
-right_fun(int car_num, int start_num, int end_num, int s1, struct semaphore *s1_sem)
-{
-	/* 우회전 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치 */
-	P(INTER); // 교차로 진입
-	P(s1_sem);
-	message_function(car_num, start_num, start_num, s1, end_num);
-	V(s1_sem);
-	message_function(car_num, start_num, s1, end_num, end_num);
-	V(INTER); // 교차로 진입
-}
+// 	V(step1);
+// 	message_function(car_num, start, step2->sem_name, step3->sem_name, dest, dest);
+// 	V(step2);
+// 	message_function(car_num, start, step3->sem_name, dest, dest, dest);
+// 	V(step3);
+// 	V(INTER); // 교차로 진입
+// }
+// static void
+// right_fun(int car_num, int start_num, int end_num, int s1, struct semaphore *s1_sem)
+// {
+// 	/* 우회전 과정을 나타내는 함수. s1_sem은 맨 처음 교차로에 진입했을 때의 교차로 위치 */
+// 	P(INTER); // 교차로 진입
+// 	P(s1_sem);
+// 	message_function(car_num, start_num, start_num, s1, end_num);
+// 	V(s1_sem);
+// 	message_function(car_num, start_num, s1, end_num, end_num);
+// 	V(INTER); // 교차로 진입
+// }
 
-static void
-straight(int car_num, int start_num, int end_num)
-{
-	/* 차량이 교차로에서 직진함을 의미하는 함수 */
-	switch (start_num)
-	{
-	case 0:
-		straight_fun(car_num, start_num, end_num, 4, 7, SE, SW);
-		break;
-	case 1:
-		straight_fun(car_num, start_num, end_num, 5, 4, NE, SE);
-		break;
-	case 2:
-		straight_fun(car_num, start_num, end_num, 6, 5, NW, NE);
-		break;
-	case 3:
-		straight_fun(car_num, start_num, end_num, 7, 6, SW, NW);
-		break;
-	}
-}
+// static void
+// straight(int car_num, int start_num, int end_num)
+// {
+// 	/* 차량이 교차로에서 직진함을 의미하는 함수 */
+// 	switch (start_num)
+// 	{
+// 	case 0:
+// 		straight_fun(car_num, start_num, end_num, 4, 7, SE, SW);
+// 		break;
+// 	case 1:
+// 		straight_fun(car_num, start_num, end_num, 5, 4, NE, SE);
+// 		break;
+// 	case 2:
+// 		straight_fun(car_num, start_num, end_num, 6, 5, NW, NE);
+// 		break;
+// 	case 3:
+// 		straight_fun(car_num, start_num, end_num, 7, 6, SW, NW);
+// 		break;
+// 	}
+// }
+
+// static void
+// right(int car_num, int start_num, int end_num)
+// {
+// 	/* 차량이 교차로에서 우회전함을 의미하는 함수 */
+// 	switch (start_num)
+// 	{
+// 	case 0:
+// 		right_fun(car_num, start_num, end_num, 4, NW);
+// 		break;
+// 	case 1:
+// 		right_fun(car_num, start_num, end_num, 5, NE);
+// 		break;
+// 	case 2:
+// 		right_fun(car_num, start_num, end_num, 6, SE);
+// 		break;
+// 	case 3:
+// 		right_fun(car_num, start_num, end_num, 7, SW);
+// 		break;
+// 	}
+// }
 
 static void
 move(int car_num, int start_num, int end_num, int type)
@@ -274,27 +295,6 @@ move(int car_num, int start_num, int end_num, int type)
 	message_function(car_num, start_num, necessary_info[i], end_num, end_num);
 	v(FIELD[necessary_info[i] - 4]);
 	V(INTER);
-}
-
-static void
-right(int car_num, int start_num, int end_num)
-{
-	/* 차량이 교차로에서 우회전함을 의미하는 함수 */
-	switch (start_num)
-	{
-	case 0:
-		right_fun(car_num, start_num, end_num, 4, NW);
-		break;
-	case 1:
-		right_fun(car_num, start_num, end_num, 5, NE);
-		break;
-	case 2:
-		right_fun(car_num, start_num, end_num, 6, SE);
-		break;
-	case 3:
-		right_fun(car_num, start_num, end_num, 7, SW);
-		break;
-	}
 }
 
 static void
