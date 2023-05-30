@@ -144,7 +144,7 @@ inititems(void)
 	}
 }
 
-static void message_create(int car_num, int end_num)
+static void message_create(int car_num, int start_num, int end_num)
 {
 	/*스레드가 생성되었을 때 메시지 출력*/
 	char str[15];
