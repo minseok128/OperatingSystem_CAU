@@ -56,7 +56,7 @@ static struct semaphore *NE;
 static struct semaphore *SW;
 static struct semaphore *SE;
 static struct semaphore *INTER;
-int message_count;
+int message_count = 0;
 
 static const char *
 get_direction_by_num(int num)
