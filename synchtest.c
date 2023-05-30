@@ -148,14 +148,14 @@ static void
 message_create(int car_num, int start_num, int end_num)
 {
 	P(testsem);
-	if ((start_num + 2) % 4 == end_num)
-		kprintf("go straight");
-	else if ((start_num + 3) % 4 == end_num)
-		kprintf("turn right");
-	else
-		kprintf("turn left");
+	kprintf(" car: %d, waiting in %s to %s ", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num));
 
-	kprintf("car: %d, waiting in %s to %s\n", car_num, get_direction_by_num(start_num), get_direction_by_num(end_num));
+	if ((start_num + 2) % 4 == end_num)
+		kprintf("go straight\n");
+	else if ((start_num + 3) % 4 == end_num)
+		kprintf("turn right\n");
+	else
+		kprintf("turn left\n");
 	V(donesem);
 }
 
