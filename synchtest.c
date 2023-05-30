@@ -145,7 +145,7 @@ inititems(void)
 }
 
 static void
-print_state(int car, int start, int dest, int before, int crr)
+print_state(int car, int start, int end, int before, int crr)
 {
 	int i;
 
@@ -153,10 +153,10 @@ print_state(int car, int start, int dest, int before, int crr)
 	kprintf("Car %d: ", car);
 	for (i = 0; i < NSEMLOOPS; i++)
 		kprintf("%c", (int)car + 64);
-	kprintf("\ncar# %d is comming from %s %s\n", car, get_dir(start), get_turn(start, dest));
+	kprintf("\ncar# %d is comming from %s %s\n", car, get_dir(start), get_turn(start, end));
 
-	kprintf("car = %d, in = %s, out = %s : %s->%s", car, get_dir(start), get_dir(dest), get_dir(before), get_dir(crr));
-	if (crr == dest)
+	kprintf("car = %d, in = %s, out = %s : %s->%s", car, get_dir(start), get_dir(end), get_dir(before), get_dir(crr));
+	if (crr == end)
 		kprintf("\tGOAL!!");
 	kprintf("\n\n\n");
 	V(donesem);
@@ -177,7 +177,7 @@ move(int car, int start, int end, int type)
 		V(FIELD[info[start][i - 1] - 4]);
 	}
 	V(FIELD[info[start][type] - 4]);
-	print_state(car, start, end, info[start][type - 1], end);
+	print_state(car, start, end, info[start][i - 1], end);
 	V(CAR_COUNT);
 }
 
@@ -532,13 +532,13 @@ int cvtest2(int nargs, char **args)
 	P(exitsem);
 	P(exitsem);
 
-	sem_destroy(exitsem);
-	sem_destroy(gatesem);
+	sem_endroy(exitsem);
+	sem_endroy(gatesem);
 	exitsem = gatesem = NULL;
 	for (i = 0; i < NCVS; i++)
 	{
-		lock_destroy(testlocks[i]);
-		cv_destroy(testcvs[i]);
+		lock_endroy(testlocks[i]);
+		cv_endroy(testcvs[i]);
 		testlocks[i] = NULL;
 		testcvs[i] = NULL;
 	}
