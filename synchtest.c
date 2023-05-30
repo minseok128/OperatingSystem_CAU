@@ -58,7 +58,7 @@ static struct semaphore *SE;
 static struct semaphore *INTER;
 int message_count;
 
-static char *
+static const char *
 get_direction_by_num(int num)
 {
 	switch (num)
