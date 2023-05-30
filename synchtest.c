@@ -51,10 +51,10 @@ static struct lock *testlock;
 static struct cv *testcv;
 static struct semaphore *donesem;
 
-static struct semaphore *NW;
-static struct semaphore *NE;
-static struct semaphore *SW;
-static struct semaphore *SE;
+// static struct semaphore *NW;
+// static struct semaphore *NE;
+// static struct semaphore *SW;
+// static struct semaphore *SE;
 static struct semaphore *FIELD[4];
 static struct semaphore *INTER;
 int message_count = 0;
@@ -106,30 +106,39 @@ static void
 inititems(void)
 {
 	// 5개의 새운 세마포어 초기화
-	if (FIELD[0] == NULL)
+	for (int i = 0; i < 4; i++)
 	{
-		FIELD[0] = sem_create("NW", 1);
-		if (FIELD[0] == NULL)
-			panic("synchtest: sem_create failed\n");
+		if (FIELD[i] == NULL)
+		{
+			FIELD[i] = sem_create( get_direction_by_num(i + 4, 1);
+			if (FIELD[i] == NULL)
+				panic("synchtest: sem_create failed\n");
+		}
 	}
-	if (FIELD[1] == NULL)
-	{
-		FIELD[1] = sem_create("NE", 1);
-		if (FIELD[1] == NULL)
-			panic("synchtest: sem_create failed\n");
-	}
-	if (FIELD[2] == NULL)
-	{
-		FIELD[2] = sem_create("SW", 1);
-		if (FIELD[2] == NULL)
-			panic("synchtest: sem_create failed\n");
-	}
-	if (FIELD[3] == NULL)
-	{
-		FIELD[3] = sem_create("SE", 1);
-		if (FIELD[3] == NULL)
-			panic("synchtest: sem_create failed\n");
-	}
+	// if (FIELD[0] == NULL)
+	// {
+	// 	FIELD[0] = sem_create("NW", 1);
+	// 	if (FIELD[0] == NULL)
+	// 		panic("synchtest: sem_create failed\n");
+	// }
+	// if (FIELD[1] == NULL)
+	// {
+	// 	FIELD[1] = sem_create("NE", 1);
+	// 	if (FIELD[1] == NULL)
+	// 		panic("synchtest: sem_create failed\n");
+	// }
+	// if (FIELD[2] == NULL)
+	// {
+	// 	FIELD[2] = sem_create("SW", 1);
+	// 	if (FIELD[2] == NULL)
+	// 		panic("synchtest: sem_create failed\n");
+	// }
+	// if (FIELD[3] == NULL)
+	// {
+	// 	FIELD[3] = sem_create("SE", 1);
+	// 	if (FIELD[3] == NULL)
+	// 		panic("synchtest: sem_create failed\n");
+	// }
 	if (INTER == NULL)
 	{
 		INTER = sem_create("INTER", 3);
