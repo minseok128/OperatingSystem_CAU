@@ -173,35 +173,14 @@ message_create(int car_num, int start_num, int end_num)
 static void
 message_function(int car_num, int start, int before, int current, int after, int destination)
 {
-	if (current == destination)
-	{
-		P(testsem);
-		kprintf("car# %d arri");
-		V(donesem);
-	}
+	P(testsem);
+	kprintf("car# %d is comming from %s going %s", get_direction_by_num(start), get_turn_by_num(start, destination));
 
-	/*메시지 출력*/
-	if (start == before)
-	{
-		/* 교차로에 방금 진입했을 때 */
-		P(testsem);
-		kprintf("car: %d, enter %s -> %s\n", car_num, get_direction_by_num(before), get_direction_by_num(current));
-		V(donesem);
-	}
-	else if (current == destination)
-	{
-		/* 목적지에 도착하여 교차로를 빠져나올 때 */
-		P(testsem);
+	if (current == destination)
 		kprintf("car: %d, arrive %s, start: %s\n", car_num, get_direction_by_num(destination), get_direction_by_num(start));
-		V(donesem);
-	}
 	else
-	{
-		/* 교차로내에서 움직일 때 */
-		P(testsem);
 		kprintf("car: %d, moved %s -> %s, start: %s, after: %s, dest: %s\n", car_num, get_direction_by_num(before), get_direction_by_num(current), get_direction_by_num(start), get_direction_by_num(after), get_direction_by_num(destination));
-		V(donesem);
-	}
+	V(donesem);
 }
 
 static void
