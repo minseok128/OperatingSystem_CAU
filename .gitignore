@@ -1,4 +1,2 @@
-*.sh
 .DS_Store
 .vscode
-original.c

@@ -51,9 +51,9 @@ static struct lock *testlock;
 static struct cv *testcv;
 static struct semaphore *donesem;
 
-static struct semaphore *FIELD[4]; // 0: NW, 1: NE, 2: SW, 3: SE
+static struct semaphore *FIELD[4]; // 0: NW_sem, 1: NE_sem, 2: SW_sem, 3: SE_sem
 static struct semaphore *CAR_COUNT;
-int message_count = 0;
+int print_count = 0;
 
 int info[4][3] = {
 	{4, 7, 6},
@@ -214,19 +214,19 @@ semtestthread(void *junk, unsigned long car)
 	if ((start + 2) % 4 == end)
 	{
 		// 직진
-		message_count += 3;
+		print_count += 3;
 		move(car, start, end, 1);
 	}
 	else if ((start + 3) % 4 == end)
 	{
 		// 우회전
-		message_count += 2;
+		print_count += 2;
 		move(car, start, end, 0);
 	}
 	else
 	{
 		// 좌회전
-		message_count += 4;
+		print_count += 4;
 		move(car, start, end, 2);
 	}
 }
@@ -258,13 +258,11 @@ int semtest(int nargs, char **args)
 
 	for (i = 0; i < NTHREADS; i++)
 	{
-		// message_create에서의 testsem, donesem 회수
 		V(testsem);
 		P(donesem);
 	}
-	for (i = 0; i < message_count; i++)
+	for (i = 0; i < print_count; i++)
 	{
-		// print_state에서의 testsem, donesem 회수
 		V(testsem);
 		P(donesem);
 	}
